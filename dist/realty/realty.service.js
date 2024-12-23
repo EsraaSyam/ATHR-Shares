@@ -19,6 +19,7 @@ const typeorm_2 = require("typeorm");
 const realty_entity_1 = require("./entities/realty.entity");
 const realty_response_1 = require("./responses/realty.response");
 const realty_details_entity_1 = require("./entities/realty_details.entity");
+const investment_details_entity_1 = require("./entities/investment-details.entity");
 let RealtyService = class RealtyService {
     constructor(realtysRepository, realtyDetailsRepository) {
         this.realtysRepository = realtysRepository;
@@ -26,35 +27,38 @@ let RealtyService = class RealtyService {
     }
     async findAll() {
         return this.realtysRepository.find({
-            relations: ['details']
+            relations: ['details', 'investmentDetails'],
         });
     }
     async findRealtyById(id) {
-        const realty = this.realtysRepository.findOne({ where: { id }, relations: ['details'] });
+        const realty = this.realtysRepository.findOne({ where: { id }, relations: ['details', 'investmentDetails'] });
         if (!realty) {
             throw new common_1.NotFoundException(`Realty of id ${id} does not exist`);
         }
         return realty;
     }
     async createRealty(createRealtyRequest) {
-        const { details, ...realtyData } = createRealtyRequest;
+        const { details, investmentDetails, ...realtyData } = createRealtyRequest;
         const realtyDetails = new realty_details_entity_1.RealtyDetailsEntity();
         Object.assign(realtyDetails, details);
+        const realtyInvestmentDetails = new investment_details_entity_1.InvestmentDetailsEntity();
+        Object.assign(realtyInvestmentDetails, investmentDetails);
         const realty = new realty_entity_1.RealtyEntity();
         Object.assign(realty, realtyData);
         realty.details = realtyDetails;
+        realty.investmentDetails = realtyInvestmentDetails;
         const result = await this.realtysRepository.save(realty);
         return result;
     }
     async getAvaliableRealty() {
-        const realtys = await this.realtysRepository.find({ where: { is_avaliable: true, is_active: true }, relations: ['details'] });
+        const realtys = await this.realtysRepository.find({ where: { is_avaliable: true, is_active: true }, relations: ['details', 'investmentDetails'] });
         if (!realtys || realtys.length === 0) {
             throw new common_1.NotFoundException('لا توجد عقارات متاحة');
         }
         return realtys.map((realty) => new realty_response_1.RealtyResponse(realty));
     }
     async getSoldRealty() {
-        const realtys = await this.realtysRepository.find({ where: { is_avaliable: false, is_active: true }, relations: ['details'] });
+        const realtys = await this.realtysRepository.find({ where: { is_avaliable: false, is_active: true }, relations: ['details', 'investmentDetails'] });
         if (!realtys || realtys.length === 0) {
             throw new common_1.NotFoundException('لا توجد عقارات متاحة');
         }

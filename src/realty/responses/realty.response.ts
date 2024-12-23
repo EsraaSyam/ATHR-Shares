@@ -1,3 +1,4 @@
+import { InvestmentDetailsResponses } from "./investment-details.response";
 import { RealtyDetailsResponss } from "./realty-details.response";
 
 export class RealtyResponse {
@@ -13,6 +14,7 @@ export class RealtyResponse {
     is_active: boolean;
     user_id?: number;
     details: RealtyDetailsResponss;
+    investmentDetails: InvestmentDetailsResponses;
 
     constructor(realty: any) {
         this.id = realty.id;
@@ -22,6 +24,7 @@ export class RealtyResponse {
         this.is_avaliable = realty.is_avaliable;
         this.is_active = realty.is_active;
         this.user_id = realty.user_id;
+    
 
         if (realty.is_avaliable) {
             this.down_payment = realty.down_payment;
@@ -33,5 +36,6 @@ export class RealtyResponse {
 
 
         this.details = realty.details ? new RealtyDetailsResponss(realty.details) : null;
+        this.investmentDetails = realty.investmentDetails ? new InvestmentDetailsResponses(realty.investmentDetails) : null;
     }
 }

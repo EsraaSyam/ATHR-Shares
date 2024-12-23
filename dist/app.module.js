@@ -22,6 +22,7 @@ const banner_entity_1 = require("./home/banner.entity");
 const realty_module_1 = require("./realty/realty.module");
 const realty_entity_1 = require("./realty/entities/realty.entity");
 const realty_details_entity_1 = require("./realty/entities/realty_details.entity");
+const investment_details_entity_1 = require("./realty/entities/investment-details.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -41,7 +42,7 @@ exports.AppModule = AppModule = __decorate([
                     username: configService.get('DB_USERNAME'),
                     password: configService.get('DB_PASSWORD'),
                     database: configService.get('DB_NAME'),
-                    entities: [user_entity_1.UserEntity, banner_entity_1.BannerEntity, realty_entity_1.RealtyEntity, realty_details_entity_1.RealtyDetailsEntity],
+                    entities: [user_entity_1.UserEntity, banner_entity_1.BannerEntity, realty_entity_1.RealtyEntity, realty_details_entity_1.RealtyDetailsEntity, investment_details_entity_1.InvestmentDetailsEntity],
                     synchronize: true,
                 }),
                 inject: [config_1.ConfigService],

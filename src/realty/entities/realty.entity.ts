@@ -1,5 +1,6 @@
 import { RealtyDetailsEntity } from "src/realty/entities/realty_details.entity";
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { InvestmentDetailsEntity } from "./investment-details.entity";
 
 @Entity('realty')
 export class RealtyEntity {
@@ -39,4 +40,8 @@ export class RealtyEntity {
     @OneToOne(() => RealtyDetailsEntity, { cascade: true }) 
     @JoinColumn()
     details: RealtyDetailsEntity;
+
+    @OneToOne(() => InvestmentDetailsEntity, { cascade: true })
+    @JoinColumn()
+    investmentDetails: InvestmentDetailsEntity;
 }

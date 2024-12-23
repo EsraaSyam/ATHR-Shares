@@ -1,5 +1,6 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { CreateRealtyDetailsRequest } from './create-realty_details.request';
+import { CreateInvestmentDetails } from './create-investment-details.request';
 
 export class CreateRealtyRequest {
   @IsNotEmpty()
@@ -33,4 +34,7 @@ export class CreateRealtyRequest {
 
   @IsNotEmpty()
   details: CreateRealtyDetailsRequest;
+
+  @IsNotEmpty()
+  investmentDetails: CreateInvestmentDetails;
 }

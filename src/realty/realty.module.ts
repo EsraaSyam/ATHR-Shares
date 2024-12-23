@@ -4,9 +4,10 @@ import { RealtyService } from './realty.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RealtyEntity } from './entities/realty.entity';
 import { RealtyDetailsEntity } from './entities/realty_details.entity';
+import { InvestmentDetailsEntity } from './entities/investment-details.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([RealtyEntity, RealtyDetailsEntity]),],
+  imports: [TypeOrmModule.forFeature([RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity])],
   exports: [RealtyService],  
   controllers: [RealtyController],
   providers: [RealtyService]

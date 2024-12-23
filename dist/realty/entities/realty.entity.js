@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RealtyEntity = void 0;
 const realty_details_entity_1 = require("./realty_details.entity");
 const typeorm_1 = require("typeorm");
+const investment_details_entity_1 = require("./investment-details.entity");
 let RealtyEntity = class RealtyEntity {
 };
 exports.RealtyEntity = RealtyEntity;
@@ -64,6 +65,11 @@ __decorate([
     (0, typeorm_1.JoinColumn)(),
     __metadata("design:type", realty_details_entity_1.RealtyDetailsEntity)
 ], RealtyEntity.prototype, "details", void 0);
+__decorate([
+    (0, typeorm_1.OneToOne)(() => investment_details_entity_1.InvestmentDetailsEntity, { cascade: true }),
+    (0, typeorm_1.JoinColumn)(),
+    __metadata("design:type", investment_details_entity_1.InvestmentDetailsEntity)
+], RealtyEntity.prototype, "investmentDetails", void 0);
 exports.RealtyEntity = RealtyEntity = __decorate([
     (0, typeorm_1.Entity)('realty')
 ], RealtyEntity);

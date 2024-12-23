@@ -13,12 +13,13 @@ const realty_service_1 = require("./realty.service");
 const typeorm_1 = require("@nestjs/typeorm");
 const realty_entity_1 = require("./entities/realty.entity");
 const realty_details_entity_1 = require("./entities/realty_details.entity");
+const investment_details_entity_1 = require("./entities/investment-details.entity");
 let RealtyModule = class RealtyModule {
 };
 exports.RealtyModule = RealtyModule;
 exports.RealtyModule = RealtyModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([realty_entity_1.RealtyEntity, realty_details_entity_1.RealtyDetailsEntity]),],
+        imports: [typeorm_1.TypeOrmModule.forFeature([realty_entity_1.RealtyEntity, realty_details_entity_1.RealtyDetailsEntity, investment_details_entity_1.InvestmentDetailsEntity])],
         exports: [realty_service_1.RealtyService],
         controllers: [realty_controller_1.RealtyController],
         providers: [realty_service_1.RealtyService]

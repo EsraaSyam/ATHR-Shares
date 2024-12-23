@@ -1,4 +1,5 @@
 import { RealtyDetailsEntity } from "src/realty/entities/realty_details.entity";
+import { InvestmentDetailsEntity } from "./investment-details.entity";
 export declare class RealtyEntity {
     id: number;
     is_avaliable?: boolean;
@@ -12,4 +13,5 @@ export declare class RealtyEntity {
     down_payment?: number;
     user_id?: number;
     details: RealtyDetailsEntity;
+    investmentDetails: InvestmentDetailsEntity;
 }

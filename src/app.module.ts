@@ -13,6 +13,7 @@ import { BannerEntity } from './home/banner.entity';
 import { RealtyModule } from './realty/realty.module';
 import { RealtyEntity } from './realty/entities/realty.entity';
 import { RealtyDetailsEntity } from './realty/entities/realty_details.entity';
+import { InvestmentDetailsEntity } from './realty/entities/investment-details.entity';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { RealtyDetailsEntity } from './realty/entities/realty_details.entity';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity],
+        entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity],
         synchronize: true,
       }),
 

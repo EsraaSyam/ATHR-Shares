@@ -1,3 +1,4 @@
+import { InvestmentDetailsResponses } from "./investment-details.response";
 import { RealtyDetailsResponss } from "./realty-details.response";
 export declare class RealtyResponse {
     id: number;
@@ -12,5 +13,6 @@ export declare class RealtyResponse {
     is_active: boolean;
     user_id?: number;
     details: RealtyDetailsResponss;
+    investmentDetails: InvestmentDetailsResponses;
     constructor(realty: any);
 }

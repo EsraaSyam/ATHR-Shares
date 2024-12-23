@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateRealtyRequest = void 0;
 const class_validator_1 = require("class-validator");
 const create_realty_details_request_1 = require("./create-realty_details.request");
+const create_investment_details_request_1 = require("./create-investment-details.request");
 class CreateRealtyRequest {
     constructor() {
         this.is_avaliable = true;
@@ -60,4 +61,8 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", create_realty_details_request_1.CreateRealtyDetailsRequest)
 ], CreateRealtyRequest.prototype, "details", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", create_investment_details_request_1.CreateInvestmentDetails)
+], CreateRealtyRequest.prototype, "investmentDetails", void 0);
 //# sourceMappingURL=create-realty.request.js.map

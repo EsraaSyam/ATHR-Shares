@@ -5,6 +5,7 @@ import { RealtyEntity } from './entities/realty.entity';
 import { CreateRealtyRequest } from './requests/create-realty.request';
 import { RealtyResponse } from './responses/realty.response';
 import { RealtyDetailsEntity } from './entities/realty_details.entity';
+import { InvestmentDetailsEntity } from './entities/investment-details.entity';
 
 @Injectable()
 export class RealtyService {
@@ -19,13 +20,13 @@ export class RealtyService {
     async findAll() {
         return this.realtysRepository.find(
             {
-                relations: ['details']
+                relations: ['details', 'investmentDetails'],
             }
         );
     }
 
     async findRealtyById(id: number) {
-        const realty =  this.realtysRepository.findOne({ where: { id } , relations: ['details'] });
+        const realty =  this.realtysRepository.findOne({ where: { id } , relations: ['details', 'investmentDetails'] });
 
         if (!realty) {
             throw new NotFoundException(`Realty of id ${id} does not exist`);
@@ -35,21 +36,25 @@ export class RealtyService {
     }
 
     async createRealty(createRealtyRequest: CreateRealtyRequest) {
-        const { details, ...realtyData } = createRealtyRequest;
+        const { details, investmentDetails, ...realtyData } = createRealtyRequest;
 
         const realtyDetails = new RealtyDetailsEntity();
         Object.assign(realtyDetails, details);
 
+        const realtyInvestmentDetails = new InvestmentDetailsEntity();
+        Object.assign(realtyInvestmentDetails, investmentDetails);
+
         const realty = new RealtyEntity();
         Object.assign(realty, realtyData);
         realty.details = realtyDetails;
+        realty.investmentDetails = realtyInvestmentDetails;
 
         const result = await this.realtysRepository.save(realty);
         return result;
     }
 
     async getAvaliableRealty(): Promise<RealtyResponse[]> {
-        const realtys = await this.realtysRepository.find({ where: { is_avaliable: true, is_active: true }, relations: ['details'] });
+        const realtys = await this.realtysRepository.find({ where: { is_avaliable: true, is_active: true }, relations: ['details', 'investmentDetails'] });
     
         if (!realtys || realtys.length === 0) {
             throw new NotFoundException('لا توجد عقارات متاحة');
@@ -59,7 +64,7 @@ export class RealtyService {
     }
 
     async getSoldRealty() {
-        const realtys = await this.realtysRepository.find({ where: { is_avaliable: false, is_active: true }, relations: ['details'] });
+        const realtys = await this.realtysRepository.find({ where: { is_avaliable: false, is_active: true }, relations: ['details', 'investmentDetails'] });
     
         if (!realtys || realtys.length === 0) {
             throw new NotFoundException('لا توجد عقارات متاحة');
