@@ -1,0 +1,145 @@
+import { Body, Controller, Post, Req, Res, UnauthorizedException, UseFilters } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { LoginRequest } from './requests/login.request';
+import { RegisterRequest } from './requests/register.request';
+import { User } from './responses/user.response';
+import * as crypto from 'crypto';
+import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
+import { ForgetPasswordRequest } from './requests/forgetPassword.request';
+import { CheakCodeRequest } from './requests/cheakCode.request';
+import { ResetPasswordRequest } from './requests/resetPassword.request';
+import { RedisService } from 'src/config/redis.service';
+import { Response } from 'express';
+
+@Controller('auth')
+@UseFilters(new HttpExceptionFilter())
+export class AuthController {
+    constructor(
+        private readonly authService: AuthService,
+        private readonly redisService: RedisService,
+    ) { }
+
+    @Post('login')
+    async login(@Body() loginRequest: LoginRequest, @Res() res) {
+        const user = await this.authService.validateUser(loginRequest.email, loginRequest.password);
+
+        if (!user) {
+            return res.status(401).json(
+                {
+                    message: 'يوجد خظأ في الايميل او الباسورد',
+                }
+            );
+        }
+
+        const token = await this.authService.login(user);
+
+        return res.status(200).json(
+            {
+                message: 'تم تسجيل الدخول بنجاح',
+                data: {
+                    token: token,
+                    user: user,
+                }
+            }
+        );
+    }
+
+
+    @Post('/register')
+    async register(@Body() registerRequest: RegisterRequest, @Res() res) {
+        const user = await this.authService.registerUser(registerRequest);
+
+        if (!user) {
+            return res.status(400).json(
+                {
+                    message: 'خطأ في تسجيل المستخدم',
+                }
+            );
+        }
+
+        return res.status(201).json(
+            {
+                message: 'تم تسجيل المستخدم بنجاح',
+                data: new User(user),
+            }
+        );
+    }
+
+    @Post('/forgot-password')
+    async forgotPassword(@Body() forgetPasswordRequest: ForgetPasswordRequest, @Res() res) {
+        const done = await this.authService.sendRestPasswordCode(forgetPasswordRequest.email);
+
+        if (!done) {
+            return res.status(400).json(
+                {
+                    message: 'لا يوجد مستخدم بهذا الايميل',
+                }
+            );
+        }
+
+        return res.status(200).json(
+            {
+                message: 'تم ارسال رمز التحقق الي البريد الالكتروني',
+            }
+        );
+    }
+
+    @Post('/check-code')
+    async checkCode(@Body() cheakCodeRequest: CheakCodeRequest, @Res() res) {
+        const done = await this.authService.cheakCode(cheakCodeRequest.email, cheakCodeRequest.resetCode);
+
+        if (!done) {
+            return res.status(400).json(
+                {
+                    message: 'خطأ في رمز التحقق',
+                }
+            );
+        }
+
+        return res.status(200).json(
+            {
+                message: 'تم التحقق من رمز التحقق بنجاح',
+            }
+        );
+    }
+
+    @Post('/reset-password')
+    async resetPassword(@Body() resetPasswordRequest: ResetPasswordRequest, @Res() res) {
+        const done = await this.authService.resetPassword(resetPasswordRequest.email, resetPasswordRequest.newPassword, resetPasswordRequest.confirmPassword);
+
+        if (!done) {
+            return res.status(400).json(
+                {
+                    message: 'خطأ في اعادة تعيين كلمة السر',
+                }
+            );
+        }
+
+        return res.status(200).json(
+            {
+                message: 'تم تغيير كلمة السر بنجاح',
+            }
+        );
+    }
+
+    @Post('/logout')
+    async logout(@Req() req, @Res() res: Response) {  
+        const token = req.headers['authorization'];
+    
+        if (!token) {
+          throw new UnauthorizedException('توكن غير موجود');
+        }
+    
+        const done = await this.authService.logout(token, this.redisService);
+
+        if (!done) {
+          throw new UnauthorizedException('خطأ في تسجيل الخروج');
+        }
+    
+        return res.status(200).json({ message: 'تم تسجيل الخروج بنجاح' });
+      }
+}
+
+
+
+
