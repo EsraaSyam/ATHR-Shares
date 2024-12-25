@@ -6,6 +6,8 @@ import { CreateRealtyRequest } from './requests/create-realty.request';
 import { RealtyResponse } from './responses/realty.response';
 import { RealtyDetailsEntity } from './entities/realty_details.entity';
 import { InvestmentDetailsEntity } from './entities/investment-details.entity';
+import { RealtyImagesEntity } from './entities/realty-images.entity';
+import { RealtyBackgroundEntity } from './entities/realty-background.entity';
 
 @Injectable()
 export class RealtyService {
@@ -15,18 +17,21 @@ export class RealtyService {
 
         @InjectRepository(RealtyDetailsEntity)
         private realtyDetailsRepository: Repository<RealtyDetailsEntity>,
+
+        @InjectRepository(RealtyImagesEntity)
+        private readonly realtyImagesRepository: Repository<RealtyImagesEntity>
     ) { }
 
     async findAll() {
         return this.realtysRepository.find(
             {
-                relations: ['details', 'investmentDetails'],
+                relations: ['details', 'investmentDetails', 'images'],
             }
         );
     }
 
     async findRealtyById(id: number) {
-        const realty =  this.realtysRepository.findOne({ where: { id } , relations: ['details', 'investmentDetails'] });
+        const realty = this.realtysRepository.findOne({ where: { id }, relations: ['details', 'investmentDetails', 'images'] });
 
         if (!realty) {
             throw new NotFoundException(`Realty of id ${id} does not exist`);
@@ -34,28 +39,55 @@ export class RealtyService {
 
         return realty;
     }
-
-    async createRealty(createRealtyRequest: CreateRealtyRequest) {
-        const { details, investmentDetails, ...realtyData } = createRealtyRequest;
-
+    async createRealty(createRealtyRequest: CreateRealtyRequest, files: Express.Multer.File[], backgroundImageUrl: string) {
+        const { details, investment_details, images, ...realtyData } = createRealtyRequest;
+    
+        if (Array.isArray(details.features)) {
+            details.features = JSON.stringify(details.features);
+        } else if (typeof details.features === 'string') {
+            details.features = JSON.stringify(details.features.split(',').map(item => item.trim()));
+        }
+    
         const realtyDetails = new RealtyDetailsEntity();
         Object.assign(realtyDetails, details);
-
+    
         const realtyInvestmentDetails = new InvestmentDetailsEntity();
-        Object.assign(realtyInvestmentDetails, investmentDetails);
-
+        Object.assign(realtyInvestmentDetails, investment_details);
+    
+        const realtyBackground = new RealtyBackgroundEntity();
+        if (backgroundImageUrl) {
+            realtyBackground.image_url = backgroundImageUrl;
+        }
+    
         const realty = new RealtyEntity();
         Object.assign(realty, realtyData);
         realty.details = realtyDetails;
         realty.investmentDetails = realtyInvestmentDetails;
-
-        const result = await this.realtysRepository.save(realty);
-        return result;
+        realty.background_image = realtyBackground; 
+        
+        const savedRealty = await this.realtysRepository.save(realty);
+    
+        if (files && files.length > 0) {
+            const realtyImages = files.map((file, index) => {
+                const realtyImage = new RealtyImagesEntity();
+                realtyImage.image_url = file.path;
+                realtyImage.description = images ? images[index]?.description : null;
+                realtyImage.realty = savedRealty;
+                return realtyImage;
+            });
+            await this.realtyImagesRepository.save(realtyImages);
+        }
+    
+        return savedRealty;
     }
+    
+
+
+
 
     async getAvaliableRealty(): Promise<RealtyResponse[]> {
-        const realtys = await this.realtysRepository.find({ where: { is_avaliable: true, is_active: true }, relations: ['details', 'investmentDetails'] });
-    
+        const realtys = await this.realtysRepository.find({ where: { is_avaliable: true, is_active: true }, relations: ['details', 'investmentDetails', 'images'] });
+
         if (!realtys || realtys.length === 0) {
             throw new NotFoundException('لا توجد عقارات متاحة');
         }
@@ -64,12 +96,12 @@ export class RealtyService {
     }
 
     async getSoldRealty() {
-        const realtys = await this.realtysRepository.find({ where: { is_avaliable: false, is_active: true }, relations: ['details', 'investmentDetails'] });
-    
+        const realtys = await this.realtysRepository.find({ where: { is_avaliable: false, is_active: true }, relations: ['details', 'investmentDetails', 'images'] });
+
         if (!realtys || realtys.length === 0) {
             throw new NotFoundException('لا توجد عقارات متاحة');
         }
-        
+
         return realtys.map((realty) => new RealtyResponse(realty));
     }
 

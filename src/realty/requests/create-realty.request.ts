@@ -1,9 +1,9 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { CreateRealtyDetailsRequest } from './create-realty_details.request';
 import { CreateInvestmentDetails } from './create-investment-details.request';
 
 export class CreateRealtyRequest {
-  @IsNotEmpty()
+  @IsOptional()
   background_image: string;
 
   @IsNotEmpty()
@@ -36,5 +36,10 @@ export class CreateRealtyRequest {
   details: CreateRealtyDetailsRequest;
 
   @IsNotEmpty()
-  investmentDetails: CreateInvestmentDetails;
+  investment_details: CreateInvestmentDetails;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @IsOptional()
+  images?: { description: string }[];
 }

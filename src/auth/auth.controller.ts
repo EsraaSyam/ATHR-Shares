@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Res, UnauthorizedException, UseFilters } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UnauthorizedException, UseFilters, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginRequest } from './requests/login.request';
 import { RegisterRequest } from './requests/register.request';
@@ -10,6 +10,7 @@ import { CheakCodeRequest } from './requests/cheakCode.request';
 import { ResetPasswordRequest } from './requests/resetPassword.request';
 import { RedisService } from 'src/config/redis.service';
 import { Response } from 'express';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('auth')
 @UseFilters(new HttpExceptionFilter())
@@ -20,6 +21,7 @@ export class AuthController {
     ) { }
 
     @Post('login')
+    @UseInterceptors(AnyFilesInterceptor())
     async login(@Body() loginRequest: LoginRequest, @Res() res) {
         const user = await this.authService.validateUser(loginRequest.email, loginRequest.password);
 
@@ -46,6 +48,7 @@ export class AuthController {
 
 
     @Post('/register')
+    @UseInterceptors(AnyFilesInterceptor())
     async register(@Body() registerRequest: RegisterRequest, @Res() res) {
         const user = await this.authService.registerUser(registerRequest);
 
@@ -66,6 +69,7 @@ export class AuthController {
     }
 
     @Post('/forgot-password')
+    @UseInterceptors(AnyFilesInterceptor())
     async forgotPassword(@Body() forgetPasswordRequest: ForgetPasswordRequest, @Res() res) {
         const done = await this.authService.sendRestPasswordCode(forgetPasswordRequest.email);
 
@@ -85,6 +89,7 @@ export class AuthController {
     }
 
     @Post('/check-code')
+    @UseInterceptors(AnyFilesInterceptor())
     async checkCode(@Body() cheakCodeRequest: CheakCodeRequest, @Res() res) {
         const done = await this.authService.cheakCode(cheakCodeRequest.email, cheakCodeRequest.resetCode);
 
@@ -104,6 +109,7 @@ export class AuthController {
     }
 
     @Post('/reset-password')
+    @UseInterceptors(AnyFilesInterceptor())
     async resetPassword(@Body() resetPasswordRequest: ResetPasswordRequest, @Res() res) {
         const done = await this.authService.resetPassword(resetPasswordRequest.email, resetPasswordRequest.newPassword, resetPasswordRequest.confirmPassword);
 

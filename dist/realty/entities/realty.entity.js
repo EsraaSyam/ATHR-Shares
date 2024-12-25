@@ -13,6 +13,8 @@ exports.RealtyEntity = void 0;
 const realty_details_entity_1 = require("./realty_details.entity");
 const typeorm_1 = require("typeorm");
 const investment_details_entity_1 = require("./investment-details.entity");
+const realty_images_entity_1 = require("./realty-images.entity");
+const realty_background_entity_1 = require("./realty-background.entity");
 let RealtyEntity = class RealtyEntity {
 };
 exports.RealtyEntity = RealtyEntity;
@@ -29,8 +31,8 @@ __decorate([
     __metadata("design:type", Boolean)
 ], RealtyEntity.prototype, "is_active", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
+    (0, typeorm_1.OneToOne)(() => realty_background_entity_1.RealtyBackgroundEntity, { cascade: true }),
+    __metadata("design:type", realty_background_entity_1.RealtyBackgroundEntity)
 ], RealtyEntity.prototype, "background_image", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
@@ -70,6 +72,10 @@ __decorate([
     (0, typeorm_1.JoinColumn)(),
     __metadata("design:type", investment_details_entity_1.InvestmentDetailsEntity)
 ], RealtyEntity.prototype, "investmentDetails", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => realty_images_entity_1.RealtyImagesEntity, (image) => image.realty, { cascade: true }),
+    __metadata("design:type", Array)
+], RealtyEntity.prototype, "images", void 0);
 exports.RealtyEntity = RealtyEntity = __decorate([
     (0, typeorm_1.Entity)('realty')
 ], RealtyEntity);

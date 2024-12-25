@@ -31,12 +31,12 @@ let HomeController = class HomeController {
             data: banners,
         });
     }
-    async uploadFileAndSave(file, res) {
+    async uploadFileAndSave(body, file, res) {
         if (!file) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
         const fileUrl = `http://localhost:${process.env.PORT}/uploads/images/${file.filename}`;
-        await this.homeService.saveBannerImageUrl(fileUrl);
+        await this.homeService.saveBannerImageUrl(fileUrl, body.description);
         return res.status(200).json({ message: 'File uploaded and URL saved successfully!', fileUrl });
     }
     async deleteBanner(req, res) {
@@ -58,10 +58,11 @@ __decorate([
 __decorate([
     (0, common_1.Post)('/upload-and-save'),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', file_upload_util_1.fileUploadOptions)),
-    __param(0, (0, common_1.UploadedFile)()),
-    __param(1, (0, common_1.Res)()),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.UploadedFile)()),
+    __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], HomeController.prototype, "uploadFileAndSave", null);
 __decorate([

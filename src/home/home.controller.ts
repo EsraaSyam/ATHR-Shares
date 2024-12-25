@@ -1,10 +1,11 @@
-import { Controller, Delete, Get, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { UsersService } from 'src/users/user.service';
 import { HomeService } from './home.service';
 import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileUploadOptions } from 'src/common/utils/file-upload.util';
+import bodyParser from 'body-parser';
 
 @Controller('home')
 export class HomeController {
@@ -29,14 +30,17 @@ export class HomeController {
 
     @Post('/upload-and-save')
     @UseInterceptors(FileInterceptor('file', fileUploadOptions))
-    async uploadFileAndSave(@UploadedFile() file: Express.Multer.File, @Res() res: Response) {
+    async uploadFileAndSave(@Body() body: any, @UploadedFile() file: Express.Multer.File, @Res() res: Response) {
         if (!file) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        const fileUrl = `http://localhost:${process.env.PORT}/uploads/images/${file.filename}`;
 
-        await this.homeService.saveBannerImageUrl(fileUrl);
+        const fileUrl = `http://localhost:${process.env.PORT}/uploads/images/${file.filename}`;
+ 
+        await this.homeService.saveBannerImageUrl(fileUrl, body.description);
+
+
 
         return res.status(200).json({ message: 'File uploaded and URL saved successfully!', fileUrl });
     }

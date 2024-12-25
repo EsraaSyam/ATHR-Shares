@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RealtyResponse = void 0;
 const investment_details_response_1 = require("./investment-details.response");
 const realty_details_response_1 = require("./realty-details.response");
+const realty_images_response_1 = require("./realty-images.response");
 class RealtyResponse {
     constructor(realty) {
         this.id = realty.id;
@@ -22,6 +23,7 @@ class RealtyResponse {
         }
         this.details = realty.details ? new realty_details_response_1.RealtyDetailsResponss(realty.details) : null;
         this.investmentDetails = realty.investmentDetails ? new investment_details_response_1.InvestmentDetailsResponses(realty.investmentDetails) : null;
+        this.realty_images = realty.images ? realty.images.map((image) => new realty_images_response_1.RealtyImagesResponse(image)) : [];
     }
 }
 exports.RealtyResponse = RealtyResponse;

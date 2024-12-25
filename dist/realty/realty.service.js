@@ -20,45 +20,69 @@ const realty_entity_1 = require("./entities/realty.entity");
 const realty_response_1 = require("./responses/realty.response");
 const realty_details_entity_1 = require("./entities/realty_details.entity");
 const investment_details_entity_1 = require("./entities/investment-details.entity");
+const realty_images_entity_1 = require("./entities/realty-images.entity");
+const realty_background_entity_1 = require("./entities/realty-background.entity");
 let RealtyService = class RealtyService {
-    constructor(realtysRepository, realtyDetailsRepository) {
+    constructor(realtysRepository, realtyDetailsRepository, realtyImagesRepository) {
         this.realtysRepository = realtysRepository;
         this.realtyDetailsRepository = realtyDetailsRepository;
+        this.realtyImagesRepository = realtyImagesRepository;
     }
     async findAll() {
         return this.realtysRepository.find({
-            relations: ['details', 'investmentDetails'],
+            relations: ['details', 'investmentDetails', 'images'],
         });
     }
     async findRealtyById(id) {
-        const realty = this.realtysRepository.findOne({ where: { id }, relations: ['details', 'investmentDetails'] });
+        const realty = this.realtysRepository.findOne({ where: { id }, relations: ['details', 'investmentDetails', 'images'] });
         if (!realty) {
             throw new common_1.NotFoundException(`Realty of id ${id} does not exist`);
         }
         return realty;
     }
-    async createRealty(createRealtyRequest) {
-        const { details, investmentDetails, ...realtyData } = createRealtyRequest;
+    async createRealty(createRealtyRequest, files, backgroundImageUrl) {
+        const { details, investment_details, images, ...realtyData } = createRealtyRequest;
+        if (Array.isArray(details.features)) {
+            details.features = JSON.stringify(details.features);
+        }
+        else if (typeof details.features === 'string') {
+            details.features = JSON.stringify(details.features.split(',').map(item => item.trim()));
+        }
         const realtyDetails = new realty_details_entity_1.RealtyDetailsEntity();
         Object.assign(realtyDetails, details);
         const realtyInvestmentDetails = new investment_details_entity_1.InvestmentDetailsEntity();
-        Object.assign(realtyInvestmentDetails, investmentDetails);
+        Object.assign(realtyInvestmentDetails, investment_details);
+        const realtyBackground = new realty_background_entity_1.RealtyBackgroundEntity();
+        if (backgroundImageUrl) {
+            realtyBackground.image_url = backgroundImageUrl;
+        }
         const realty = new realty_entity_1.RealtyEntity();
         Object.assign(realty, realtyData);
         realty.details = realtyDetails;
         realty.investmentDetails = realtyInvestmentDetails;
-        const result = await this.realtysRepository.save(realty);
-        return result;
+        realty.background_image = realtyBackground;
+        const savedRealty = await this.realtysRepository.save(realty);
+        if (files && files.length > 0) {
+            const realtyImages = files.map((file, index) => {
+                const realtyImage = new realty_images_entity_1.RealtyImagesEntity();
+                realtyImage.image_url = file.path;
+                realtyImage.description = images ? images[index]?.description : null;
+                realtyImage.realty = savedRealty;
+                return realtyImage;
+            });
+            await this.realtyImagesRepository.save(realtyImages);
+        }
+        return savedRealty;
     }
     async getAvaliableRealty() {
-        const realtys = await this.realtysRepository.find({ where: { is_avaliable: true, is_active: true }, relations: ['details', 'investmentDetails'] });
+        const realtys = await this.realtysRepository.find({ where: { is_avaliable: true, is_active: true }, relations: ['details', 'investmentDetails', 'images'] });
         if (!realtys || realtys.length === 0) {
             throw new common_1.NotFoundException('لا توجد عقارات متاحة');
         }
         return realtys.map((realty) => new realty_response_1.RealtyResponse(realty));
     }
     async getSoldRealty() {
-        const realtys = await this.realtysRepository.find({ where: { is_avaliable: false, is_active: true }, relations: ['details', 'investmentDetails'] });
+        const realtys = await this.realtysRepository.find({ where: { is_avaliable: false, is_active: true }, relations: ['details', 'investmentDetails', 'images'] });
         if (!realtys || realtys.length === 0) {
             throw new common_1.NotFoundException('لا توجد عقارات متاحة');
         }
@@ -77,7 +101,9 @@ exports.RealtyService = RealtyService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(realty_entity_1.RealtyEntity)),
     __param(1, (0, typeorm_1.InjectRepository)(realty_details_entity_1.RealtyDetailsEntity)),
+    __param(2, (0, typeorm_1.InjectRepository)(realty_images_entity_1.RealtyImagesEntity)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository])
 ], RealtyService);
 //# sourceMappingURL=realty.service.js.map

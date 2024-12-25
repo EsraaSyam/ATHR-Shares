@@ -1,5 +1,6 @@
 import { InvestmentDetailsResponses } from "./investment-details.response";
 import { RealtyDetailsResponss } from "./realty-details.response";
+import { RealtyImagesResponse } from "./realty-images.response";
 export declare class RealtyResponse {
     id: number;
     background_image: string;
@@ -14,5 +15,6 @@ export declare class RealtyResponse {
     user_id?: number;
     details: RealtyDetailsResponss;
     investmentDetails: InvestmentDetailsResponses;
+    realty_images: RealtyImagesResponse[];
     constructor(realty: any);
 }

@@ -10,5 +10,8 @@ export declare class CreateRealtyRequest {
     is_avaliable: boolean;
     is_active: boolean;
     details: CreateRealtyDetailsRequest;
-    investmentDetails: CreateInvestmentDetails;
+    investment_details: CreateInvestmentDetails;
+    images?: {
+        description: string;
+    }[];
 }

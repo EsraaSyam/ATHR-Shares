@@ -21,8 +21,8 @@ export class RealtyDetailsEntity {
     @Column({ type: 'double precision' })
     price: number;
 
-    @Column('text', { array: true })
-    features: string[];
+    @Column("text", {nullable: true}) 
+    features: string;
 
     @Column()
     longitude: string;

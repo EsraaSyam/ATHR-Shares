@@ -8,6 +8,9 @@ export class BannerEntity {
     @Column()
     image_url: string;
 
+    @Column({ nullable: true })
+    description: string;
+
     @Column({ nullable: true, default: true })
     is_active: boolean;
 }

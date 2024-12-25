@@ -8,6 +8,6 @@ export declare class HomeService {
     private readonly authService;
     constructor(bannersRepository: Repository<BannerEntity>, usersService: UsersService, authService: AuthService);
     getBannerImages(): Promise<BannerEntity[]>;
-    saveBannerImageUrl(imageUrl: string): Promise<void>;
+    saveBannerImageUrl(imageUrl: string, description: string): Promise<void>;
     deleteBanner(id: number): Promise<import("typeorm").DeleteResult>;
 }

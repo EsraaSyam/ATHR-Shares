@@ -14,6 +14,8 @@ import { RealtyModule } from './realty/realty.module';
 import { RealtyEntity } from './realty/entities/realty.entity';
 import { RealtyDetailsEntity } from './realty/entities/realty_details.entity';
 import { InvestmentDetailsEntity } from './realty/entities/investment-details.entity';
+import { RealtyImagesEntity } from './realty/entities/realty-images.entity';
+import { RealtyBackgroundEntity } from './realty/entities/realty-background.entity';
 
 @Module({
   imports: [
@@ -31,7 +33,7 @@ import { InvestmentDetailsEntity } from './realty/entities/investment-details.en
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity],
+        entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity, RealtyImagesEntity, RealtyBackgroundEntity],
         synchronize: true,
       }),
 

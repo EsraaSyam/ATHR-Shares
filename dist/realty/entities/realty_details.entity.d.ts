@@ -5,7 +5,7 @@ export declare class RealtyDetailsEntity {
     area: number;
     type: string;
     price: number;
-    features: string[];
+    features: string;
     longitude: string;
     latitude: string;
 }

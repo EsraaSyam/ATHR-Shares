@@ -6,7 +6,7 @@ export declare class RealtyController {
     constructor(realtyService: RealtyService);
     getAllRealtys(): Promise<import("./entities/realty.entity").RealtyEntity[]>;
     getRealtyById(id: number): Promise<import("./entities/realty.entity").RealtyEntity>;
-    createRealty(createRealtyRequest: CreateRealtyRequest, res: Response): Promise<Response<any, Record<string, any>>>;
+    createRealty(createRealtyRequest: CreateRealtyRequest, files: Express.Multer.File[], res: any): Promise<any>;
     getAvaliableRealty(res: Response): Promise<Response<any, Record<string, any>>>;
     getSoldRealty(res: Response): Promise<Response<any, Record<string, any>>>;
     deleteRealty(id: number, res: Response): Promise<Response<any, Record<string, any>>>;

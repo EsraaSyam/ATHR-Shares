@@ -66,7 +66,8 @@ let AuthService = class AuthService {
         const user = await this.saveResetCodeToDatabase(email, resetCode);
         if (!user)
             return false;
-        await this.mailerService.sendResetPasswordCode(email, resetCode);
+        const data = await this.usersService.findByEmail(email);
+        await this.mailerService.sendResetPasswordCode(email, resetCode, data.full_name);
         return true;
     }
     async cheakCode(email, resetCode) {

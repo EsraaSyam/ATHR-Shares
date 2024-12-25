@@ -20,9 +20,10 @@ export class HomeService {
         return await this.bannersRepository.find({where: {is_active: true}});
     }
 
-    async saveBannerImageUrl(imageUrl: string) {
+    async saveBannerImageUrl(imageUrl: string , description: string) {
         const banner = new BannerEntity();
         banner.image_url = imageUrl;
+        banner.description = description || '';
     
         await this.bannersRepository.save(banner); 
       }

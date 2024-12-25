@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Res, UseInterceptors } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { CreateUserRequest } from './requests/create-user.requests';
 import { Response } from 'express';
 import { UpdateUserRequest } from './requests/update-user.request';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UsersController {

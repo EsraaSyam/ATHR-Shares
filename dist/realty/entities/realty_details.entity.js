@@ -39,8 +39,8 @@ __decorate([
     __metadata("design:type", Number)
 ], RealtyDetailsEntity.prototype, "price", void 0);
 __decorate([
-    (0, typeorm_1.Column)('text', { array: true }),
-    __metadata("design:type", Array)
+    (0, typeorm_1.Column)("text", { nullable: true }),
+    __metadata("design:type", String)
 ], RealtyDetailsEntity.prototype, "features", void 0);
 __decorate([
     (0, typeorm_1.Column)(),

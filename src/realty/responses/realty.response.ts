@@ -1,5 +1,6 @@
 import { InvestmentDetailsResponses } from "./investment-details.response";
 import { RealtyDetailsResponss } from "./realty-details.response";
+import { RealtyImagesResponse } from "./realty-images.response";
 
 export class RealtyResponse {
     id: number;
@@ -15,6 +16,7 @@ export class RealtyResponse {
     user_id?: number;
     details: RealtyDetailsResponss;
     investmentDetails: InvestmentDetailsResponses;
+    realty_images: RealtyImagesResponse[];
 
     constructor(realty: any) {
         this.id = realty.id;
@@ -37,5 +39,6 @@ export class RealtyResponse {
 
         this.details = realty.details ? new RealtyDetailsResponss(realty.details) : null;
         this.investmentDetails = realty.investmentDetails ? new InvestmentDetailsResponses(realty.investmentDetails) : null;
+        this.realty_images = realty.images ? realty.images.map((image: any) => new RealtyImagesResponse(image)) : [];
     }
 }

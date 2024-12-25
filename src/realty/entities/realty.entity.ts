@@ -1,6 +1,8 @@
 import { RealtyDetailsEntity } from "src/realty/entities/realty_details.entity";
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { InvestmentDetailsEntity } from "./investment-details.entity";
+import { RealtyImagesEntity } from "./realty-images.entity";
+import { RealtyBackgroundEntity } from "./realty-background.entity";
 
 @Entity('realty')
 export class RealtyEntity {
@@ -13,8 +15,8 @@ export class RealtyEntity {
     @Column({ nullable: true, default: true })
     is_active?: boolean;
 
-    @Column()
-    background_image: string;
+    @OneToOne(() => RealtyBackgroundEntity, { cascade: true })
+    background_image: RealtyBackgroundEntity;
 
     @Column()
     title: string;
@@ -44,4 +46,8 @@ export class RealtyEntity {
     @OneToOne(() => InvestmentDetailsEntity, { cascade: true })
     @JoinColumn()
     investmentDetails: InvestmentDetailsEntity;
+
+    @OneToMany(() => RealtyImagesEntity, (image) => image.realty, { cascade: true })
+    images?: RealtyImagesEntity[];
+
 }

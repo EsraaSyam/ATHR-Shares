@@ -28,9 +28,10 @@ let HomeService = class HomeService {
     async getBannerImages() {
         return await this.bannersRepository.find({ where: { is_active: true } });
     }
-    async saveBannerImageUrl(imageUrl) {
+    async saveBannerImageUrl(imageUrl, description) {
         const banner = new banner_entity_1.BannerEntity();
         banner.image_url = imageUrl;
+        banner.description = description || '';
         await this.bannersRepository.save(banner);
     }
     async deleteBanner(id) {

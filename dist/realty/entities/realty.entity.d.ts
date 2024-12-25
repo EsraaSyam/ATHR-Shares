@@ -1,10 +1,12 @@
 import { RealtyDetailsEntity } from "src/realty/entities/realty_details.entity";
 import { InvestmentDetailsEntity } from "./investment-details.entity";
+import { RealtyImagesEntity } from "./realty-images.entity";
+import { RealtyBackgroundEntity } from "./realty-background.entity";
 export declare class RealtyEntity {
     id: number;
     is_avaliable?: boolean;
     is_active?: boolean;
-    background_image: string;
+    background_image: RealtyBackgroundEntity;
     title: string;
     owner_name: string;
     net_quarter?: number;
@@ -14,4 +16,5 @@ export declare class RealtyEntity {
     user_id?: number;
     details: RealtyDetailsEntity;
     investmentDetails: InvestmentDetailsEntity;
+    images?: RealtyImagesEntity[];
 }

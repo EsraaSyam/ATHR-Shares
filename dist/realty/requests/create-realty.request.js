@@ -21,7 +21,7 @@ class CreateRealtyRequest {
 }
 exports.CreateRealtyRequest = CreateRealtyRequest;
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreateRealtyRequest.prototype, "background_image", void 0);
 __decorate([
@@ -64,5 +64,11 @@ __decorate([
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", create_investment_details_request_1.CreateInvestmentDetails)
-], CreateRealtyRequest.prototype, "investmentDetails", void 0);
+], CreateRealtyRequest.prototype, "investment_details", void 0);
+__decorate([
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Array)
+], CreateRealtyRequest.prototype, "images", void 0);
 //# sourceMappingURL=create-realty.request.js.map
