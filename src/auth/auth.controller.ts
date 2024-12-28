@@ -23,12 +23,12 @@ export class AuthController {
     @Post('login')
     @UseInterceptors(AnyFilesInterceptor())
     async login(@Body() loginRequest: LoginRequest, @Res() res) {
-        const user = await this.authService.validateUser(loginRequest.email, loginRequest.password);
+        const user = await this.authService.validateUser(loginRequest.phone_number, loginRequest.password);
 
         if (!user) {
             return res.status(401).json(
                 {
-                    message: 'يوجد خظأ في الايميل او الباسورد',
+                    message: 'يوجد خظأ في رقم الموبايل او الباسورد',
                 }
             );
         }

@@ -22,4 +22,5 @@ export declare class UsersService {
     findByEmail(email: string): Promise<UserEntity>;
     findById(id: number): Promise<UserEntity>;
     softDeleteById(id: number): Promise<void>;
+    findByPhoneNumber(phone_number: string): Promise<UserEntity>;
 }

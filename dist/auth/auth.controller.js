@@ -30,10 +30,10 @@ let AuthController = class AuthController {
         this.redisService = redisService;
     }
     async login(loginRequest, res) {
-        const user = await this.authService.validateUser(loginRequest.email, loginRequest.password);
+        const user = await this.authService.validateUser(loginRequest.phone_number, loginRequest.password);
         if (!user) {
             return res.status(401).json({
-                message: 'يوجد خظأ في الايميل او الباسورد',
+                message: 'يوجد خظأ في رقم الموبايل او الباسورد',
             });
         }
         const token = await this.authService.login(user);

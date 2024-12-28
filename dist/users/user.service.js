@@ -85,6 +85,9 @@ let UsersService = class UsersService {
         user.is_active = false;
         await this.usersRepository.update(id, user);
     }
+    async findByPhoneNumber(phone_number) {
+        return this.usersRepository.findOne({ where: { phone_number } });
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

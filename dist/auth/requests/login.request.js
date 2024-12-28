@@ -15,10 +15,9 @@ class LoginRequest {
 }
 exports.LoginRequest = LoginRequest;
 __decorate([
-    (0, class_validator_1.IsEmail)({}, { message: "الايميل غير صحيح" }),
-    (0, class_validator_1.IsNotEmpty)({ message: "الايميل مطلوب" }),
+    (0, class_validator_1.IsNotEmpty)({ message: "رقم الموبايل مطلوب" }),
     __metadata("design:type", String)
-], LoginRequest.prototype, "email", void 0);
+], LoginRequest.prototype, "phone_number", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)({ message: "الباسورد مطلوب" }),
     __metadata("design:type", String)

@@ -20,9 +20,9 @@ export class AuthService {
         private readonly redisService: RedisService,
     ) { }
 
-    async validateUser(email: string, password: string) {
-        const user = await this.usersService.findByEmail(email);
-
+    async validateUser(phone_number: string, password: string) {
+        const user = await this.usersService.findByPhoneNumber(phone_number);
+        
         if (!user) return null;
 
         const isPasswordValid = await bcrypt.compare(password, user.password);

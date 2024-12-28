@@ -11,7 +11,7 @@ export declare class AuthService {
     private readonly jwtService;
     private readonly redisService;
     constructor(usersService: UsersService, mailerService: MailerService, jwtService: JwtService, redisService: RedisService);
-    validateUser(email: string, password: string): Promise<User>;
+    validateUser(phone_number: string, password: string): Promise<User>;
     login(user: any): Promise<string>;
     registerUser(registerRequest: RegisterRequest): Promise<import("../users/requests/create-user.requests").CreateUserRequest & UserEntity>;
     private generateResetCode;

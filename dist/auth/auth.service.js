@@ -27,8 +27,8 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
         this.redisService = redisService;
     }
-    async validateUser(email, password) {
-        const user = await this.usersService.findByEmail(email);
+    async validateUser(phone_number, password) {
+        const user = await this.usersService.findByPhoneNumber(phone_number);
         if (!user)
             return null;
         const isPasswordValid = await bcrypt.compare(password, user.password);

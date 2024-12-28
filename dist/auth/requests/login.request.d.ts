@@ -1,4 +1,4 @@
 export declare class LoginRequest {
-    email: string;
+    phone_number: string;
     password: string;
 }

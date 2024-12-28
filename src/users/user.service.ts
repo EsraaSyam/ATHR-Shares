@@ -97,4 +97,8 @@ export class UsersService {
         await this.usersRepository.update(id, user);
     }
 
+    async findByPhoneNumber(phone_number: string) {
+        return this.usersRepository.findOne({ where: { phone_number } });
+    }
+
 }
