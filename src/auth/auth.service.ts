@@ -1,4 +1,4 @@
-import { Injectable, UseFilters } from '@nestjs/common';
+import { Injectable, UnauthorizedException, UseFilters } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/user.service';
 import { MailerService } from 'src/mailer/mailer.service';
@@ -122,6 +122,10 @@ export class AuthService {
         const blacklisted = await this.redisService.isTokenBlacklisted(token);
 
         const decoded = await this.jwtService.decode(token);
+
+        if (!decoded || !decoded.exp) {
+            throw new UnauthorizedException('Invalid token or expired');
+          }
 
         if (blacklisted) return null;
 

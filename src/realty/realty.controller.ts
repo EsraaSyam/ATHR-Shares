@@ -51,7 +51,6 @@ export class RealtyController {
 
             const allImages = [backgroundImageFile, ...realtyImages];
 
-            // Pass data to the service for saving the realty
             const realty = await this.realtyService.createRealty(createRealtyRequest, allImages, backgroundImageUrl);
 
             return res.status(201).json({

@@ -17,16 +17,32 @@ export class HomeService {
 
 
     async getBannerImages() {
-        return await this.bannersRepository.find({where: {is_active: true}});
+        return await this.bannersRepository.find({ where: { is_active: true } });
     }
 
-    async saveBannerImageUrl(imageUrl: string , description: string) {
+    async saveBannerImageUrl(imageUrl: string, description: string) {
         const banner = new BannerEntity();
         banner.image_url = imageUrl;
         banner.description = description || '';
-    
-        await this.bannersRepository.save(banner); 
-      }
+
+        await this.bannersRepository.save(banner);
+    }
+
+    async completeProfile(user: any, imageUrl: string[], is_passport: boolean) {
+        if (user.passport_photo !== null || user.id_photo !== null) {
+            throw new TokenNotValid('User already completed profile');
+        }
+
+        if (!is_passport) {
+            user.id_photo = imageUrl;
+        }
+
+        if (is_passport) {
+            user.passport_photo = imageUrl;
+        }
+
+        return await this.usersService.updateById(user.id, user);
+    }
 
     async deleteBanner(id: number) {
         return await this.bannersRepository.delete(id);

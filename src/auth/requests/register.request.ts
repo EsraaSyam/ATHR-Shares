@@ -1,4 +1,5 @@
-import { IsEmail, IsNotEmpty, IsOptional, MaxLength, MinLength } from "class-validator";
+import { IsArray, IsEmail, IsNotEmpty, IsOptional, MaxLength, MinLength, ValidateNested } from "class-validator";
+import { Role } from "src/users/user.enum";
 
 export class RegisterRequest {
     @IsNotEmpty({ message: 'الاسم الكامل مطلوب' })
@@ -16,12 +17,19 @@ export class RegisterRequest {
     @IsEmail({}, { message: 'البريد الإلكتروني غير صالح' })
     email: string;
 
+    @IsArray()
+    @ValidateNested({ each: true })
     @IsOptional()
-    id_photo?: string;
+    id_photo?: string[];
 
+    @IsArray()
+    @ValidateNested({ each: true })
     @IsOptional()
-    passport_photo?: string;
+    passport_photo?: string[];
 
     @IsOptional()
     is_active?: boolean = true;
+
+    @IsOptional()
+    role?: Role = Role.USER;
 }

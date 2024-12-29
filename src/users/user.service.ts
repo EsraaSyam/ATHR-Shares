@@ -101,4 +101,14 @@ export class UsersService {
         return this.usersRepository.findOne({ where: { phone_number } });
     }
 
+    async checkProfileCompleted(userId: number) {
+        const user = await this.findById(userId);
+
+        if (!user) {
+            throw new NotFoundException(`User with id ${userId} does not exist`);
+        }
+
+        return Boolean(user.id_photo !== null || user.passport_photo !== null);
+    }
+
 }

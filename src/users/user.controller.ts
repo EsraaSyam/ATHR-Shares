@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Res, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Res, UnauthorizedException, UseInterceptors } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { CreateUserRequest } from './requests/create-user.requests';
 import { Response } from 'express';
@@ -77,4 +77,6 @@ export class UsersController {
             )
         }
     }
+
+  
 }

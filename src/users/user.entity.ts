@@ -18,11 +18,11 @@ export class UserEntity {
   @Column()
   email: string;
 
-  @Column({ nullable: true })
-  id_photo: string;
+  @Column({ type: 'simple-array', nullable: true })
+  id_photo: string[];
 
-  @Column({ nullable: true })
-  passport_photo: string;
+  @Column({ type: 'simple-array', nullable: true })
+  passport_photo: string[];
 
   @Column({ nullable: true, default: true })
   is_active: boolean;
