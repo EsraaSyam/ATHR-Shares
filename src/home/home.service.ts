@@ -28,18 +28,25 @@ export class HomeService {
         await this.bannersRepository.save(banner);
     }
 
-    async completeProfile(user: any, imageUrl: string[], is_passport: boolean) {
-        if (user.passport_photo !== null || user.id_photo !== null) {
+    async uploadPassport(user: any, imageUrl: string) {
+        if (user.passport_photo !== null || user.id_photo_back !== null) {
             throw new TokenNotValid('User already completed profile');
         }
 
-        if (!is_passport) {
-            user.id_photo = imageUrl;
+        user.passport_photo = imageUrl;
+        user.is_completed_profile = true;
+
+        return await this.usersService.updateById(user.id, user);
+    }
+
+    async uploadIdPhotos(user: any, image_url: string[]){
+        if (user.passport_photo !== null || user.id_photo_back !== null) {
+            throw new TokenNotValid('User already completed profile');
         }
 
-        if (is_passport) {
-            user.passport_photo = imageUrl;
-        }
+        user.id_photo_front = image_url[0];
+        user.id_photo_back = image_url[1];
+        user.is_completed_profile = true;
 
         return await this.usersService.updateById(user.id, user);
     }

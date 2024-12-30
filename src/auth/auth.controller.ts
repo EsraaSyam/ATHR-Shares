@@ -63,7 +63,28 @@ export class AuthController {
         return res.status(201).json(
             {
                 message: 'تم تسجيل المستخدم بنجاح',
-                data: new User(user),
+                data: user,
+            }
+        );
+    }
+
+    @Post('/register-guest')
+    @UseInterceptors(AnyFilesInterceptor())
+    async registerGuest(@Res() res: Response) {
+        const user = await this.authService.generateFackData();
+
+        if (!user) {
+            return res.status(400).json(
+                {
+                    message: 'خطأ في تسجيل المستخدم',
+                }
+            );
+        }
+
+        return res.status(201).json(
+            {
+                message: 'تم تسجيل المستخدم بنجاح',
+                data: user
             }
         );
     }

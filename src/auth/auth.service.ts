@@ -10,6 +10,7 @@ import { RegisterRequest } from './requests/register.request';
 import { User } from './responses/user.response';
 import { RedisService } from 'src/config/redis.service';
 import { UserAlreadyExist } from 'src/exceptions/user-already-exist.exception';
+import { Role } from 'src/users/user.enum';
 
 @Injectable()
 export class AuthService {
@@ -35,22 +36,50 @@ export class AuthService {
     }
 
     async login(user: any) {
-        const payload = { email: user.email, sub: user.id };
+        const payload = { email: user.email, sub: user.id, role: user.role };
 
         return this.jwtService.sign(payload);
     }
 
     async registerUser(registerRequest: RegisterRequest) {
         const email = registerRequest.email;
-
+    
+        
         const user = await this.usersService.findByEmail(email);
-
+    
         if (user) {
             throw new UserAlreadyExist('User already exist');
         }
-
-        return await this.usersService.create(registerRequest);
+    
+        const newUser = await this.usersService.create(registerRequest);
+    
+        const payload = { email: newUser.email, sub: newUser.id, role: newUser.role };
+        const token = this.jwtService.sign(payload);
+    
+        return {
+            token,
+            user: newUser,
+        };
     }
+    
+
+    async generateFackData() {
+        const user = new UserEntity();
+        user.full_name = `Guest_${Date.now()}`;
+        user.email = `${user.full_name.toLowerCase()}@example.com`;
+        user.password = await bycrpt.hash('123456', 10);
+        user.phone_number = `${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+        user.role = Role.GUEST;
+
+        const new_Guest = await this.usersService.create(user);
+
+        return {
+            token: this.jwtService.sign({ email: user.email, sub: user.id, role: user.role }),
+            user: new_Guest,
+        }
+    }
+
+
 
     private generateResetCode() {
         return crypto.randomBytes(3).toString('hex');
@@ -62,7 +91,7 @@ export class AuthService {
         if (user) {
             user.resetCode = resetCode;
             user.resetCodeExpiration = new Date(Date.now() + 1000 * 60 * 10);
-            await this.usersService.updateById(user.id, user);
+            await this.usersService.updateById(Number(user.id), user);
         }
 
         return user;
@@ -103,7 +132,7 @@ export class AuthService {
         user.resetCode = null;
         user.resetCodeExpiration = null;
 
-        await this.usersService.updateById(user.id, user);
+        await this.usersService.updateById(Number(user.id), user);
         return true;
     }
 

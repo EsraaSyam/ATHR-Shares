@@ -3,8 +3,8 @@ import { Role } from './user.enum';
 
 @Entity('users')
 export class UserEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  id: string;
 
   @Column()
   full_name: string;
@@ -18,11 +18,14 @@ export class UserEntity {
   @Column()
   email: string;
 
-  @Column({ type: 'simple-array', nullable: true })
-  id_photo: string[];
+  @Column({ nullable: true })
+  id_photo_front: string;
 
-  @Column({ type: 'simple-array', nullable: true })
-  passport_photo: string[];
+  @Column({ nullable: true })
+  id_photo_back: string;
+
+  @Column({ nullable: true })
+  passport_photo: string;
 
   @Column({ nullable: true, default: true })
   is_active: boolean;
@@ -35,4 +38,7 @@ export class UserEntity {
 
   @Column({ nullable: true })
   role: Role = Role.USER;
+
+  @Column({ nullable: true })
+  is_completed: boolean = false;
 }

@@ -17,15 +17,14 @@ export class RegisterRequest {
     @IsEmail({}, { message: 'البريد الإلكتروني غير صالح' })
     email: string;
 
-    @IsArray()
-    @ValidateNested({ each: true })
     @IsOptional()
-    id_photo?: string[];
+    id_photo_front?: string;
 
-    @IsArray()
-    @ValidateNested({ each: true })
     @IsOptional()
-    passport_photo?: string[];
+    id_photo_back?: string;
+
+    @IsOptional()
+    passport_photo?: string;
 
     @IsOptional()
     is_active?: boolean = true;

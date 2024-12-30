@@ -60,7 +60,53 @@ export class HomeController {
         );
     }
 
-    @Post('/complete-profile')
+    @Post('/upload-passport')
+    @UseInterceptors(
+        FilesInterceptor('images', 1, {
+            storage: diskStorage({
+                destination: './uploads',
+                filename: (req, file, callback) => {
+                    const uniqueName = `${Date.now()}${extname(file.originalname)}`;
+                    callback(null, uniqueName);
+                },
+            }),
+        }),
+    )
+    async uploadPassportImage(
+        @Req() req,
+        @UploadedFiles() file: Express.Multer.File, 
+        @Res() res: Response,
+    ) {
+        const token = req.headers['authorization'];
+
+        if (!token) {
+            throw new UnauthorizedException('Token not found');
+        }
+
+        const user = await this.AuthService.getUserByToken(token);
+
+        if (!user) {
+            throw new UnauthorizedException('Invalid token');
+        }
+
+        if (!file) {
+            return res.status(400).json({
+                message: 'Please upload both front and back images',
+            });
+        }
+        const fileUrls = `http://localhost:${process.env.PORT}/uploads/images/${file.filename}`;
+        await this.homeService.uploadPassport(
+            user,
+            fileUrls,
+        );
+
+        return res.status(200).json({
+            message: 'Profile images uploaded successfully!',
+            fileUrls,
+        });
+    }
+
+    @Post('/upload-id-images')
     @UseInterceptors(
         FilesInterceptor('images', 2, {
             storage: diskStorage({
@@ -72,7 +118,7 @@ export class HomeController {
             }),
         }),
     )
-    async completeProfile(
+    async uploadIdImages(
         @Req() req,
         @UploadedFiles() files: Express.Multer.File[], 
         @Res() res: Response,
@@ -89,14 +135,6 @@ export class HomeController {
             throw new UnauthorizedException('Invalid token');
         }
 
-        const isPassport = req.body.isPassport;
-
-        if (!isPassport) {
-            return res.status(400).json({
-                message: 'Please specify if you are uploading ID or Passport image...',
-            });
-        }
-
         if (!files || files.length !== 2) {
             return res.status(400).json({
                 message: 'Please upload both front and back images',
@@ -105,12 +143,9 @@ export class HomeController {
         const fileUrls = files.map(
             (file) => `http://localhost:${process.env.PORT}/uploads/${file.filename}`,
         );
-
-        // Save the data to the database
-        await this.homeService.completeProfile(
+        await this.homeService.uploadIdPhotos(
             user,
             fileUrls,
-            isPassport === 'true', 
         );
 
         return res.status(200).json({
@@ -118,6 +153,8 @@ export class HomeController {
             fileUrls,
         });
     }
+
+
 
 
 }
