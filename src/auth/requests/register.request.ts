@@ -31,4 +31,7 @@ export class RegisterRequest {
 
     @IsOptional()
     role?: Role = Role.USER;
+
+    @IsOptional()
+    is_verified?: boolean = false;
 }

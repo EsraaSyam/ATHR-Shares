@@ -28,4 +28,7 @@ export class CreateUserRequest {
 
     @IsOptional()
     is_active?: boolean = true;
+
+    @IsOptional()
+    is_verified?: boolean = false;
 }

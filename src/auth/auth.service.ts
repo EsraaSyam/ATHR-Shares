@@ -11,6 +11,7 @@ import { User } from './responses/user.response';
 import { RedisService } from 'src/config/redis.service';
 import { UserAlreadyExist } from 'src/exceptions/user-already-exist.exception';
 import { Role } from 'src/users/user.enum';
+import * as admin from 'firebase-admin';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +24,7 @@ export class AuthService {
 
     async validateUser(phone_number: string, password: string) {
         const user = await this.usersService.findByPhoneNumber(phone_number);
-        
+
         if (!user) return null;
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -43,25 +44,25 @@ export class AuthService {
 
     async registerUser(registerRequest: RegisterRequest) {
         const email = registerRequest.email;
-    
-        
+
+
         const user = await this.usersService.findByEmail(email);
-    
+
         if (user) {
             throw new UserAlreadyExist('User already exist');
         }
-    
+
         const newUser = await this.usersService.create(registerRequest);
-    
+
         const payload = { email: newUser.email, sub: newUser.id, role: newUser.role };
         const token = this.jwtService.sign(payload);
-    
+
         return {
             token,
             user: newUser,
         };
     }
-    
+
 
     async generateFackData() {
         const user = new UserEntity();
@@ -113,7 +114,7 @@ export class AuthService {
     async cheakCode(email: string, resetCode: string) {
         const user = await this.usersService.findByEmail(email);
 
-        if(!user || user.resetCode !== resetCode || user.resetCodeExpiration < new Date()) {
+        if (!user || user.resetCode !== resetCode || user.resetCodeExpiration < new Date()) {
             return false;
         }
 
@@ -136,11 +137,11 @@ export class AuthService {
         return true;
     }
 
-    async logout(token: string, redisService: RedisService){
+    async logout(token: string, redisService: RedisService) {
         const decoded = this.jwtService.decode(token);
-    
+
         const expiresIn = decoded.exp - Math.floor(Date.now() / 1000);
-        
+
         await redisService.setTokenInBlacklist(token, expiresIn);
         return true;
     }
@@ -154,16 +155,39 @@ export class AuthService {
 
         if (!decoded || !decoded.exp) {
             throw new UnauthorizedException('Invalid token or expired');
-          }
+        }
 
         if (blacklisted) return null;
 
         const isExpired = decoded.exp < Math.floor(Date.now() / 1000);
 
         if (isExpired) return null;
-        
+
         const user = await this.usersService.findByEmail(decoded.email);
 
         return user;
+    }
+
+    async checkIfUserExists(uid: string) {
+        const user = await admin.auth().getUser(uid);
+
+        if(!user) {
+            throw new UnauthorizedException('User does not exist');
+        }
+
+        const email = user.email;
+        const userExist = await this.usersService.findByEmail(email);
+
+        if(!userExist) {
+            throw new UnauthorizedException('User does not exist');
+        }
+
+        userExist.is_verified = true;
+
+        await this.usersService.updateById(Number(userExist.id), userExist);
+
+        return user;
+
+        
     }
 }

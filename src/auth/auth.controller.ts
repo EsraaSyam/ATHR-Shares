@@ -150,21 +150,41 @@ export class AuthController {
     }
 
     @Post('/logout')
-    async logout(@Req() req, @Res() res: Response) {  
+    async logout(@Req() req, @Res() res: Response) {
         const token = req.headers['authorization'];
-    
+
         if (!token) {
-          throw new UnauthorizedException('توكن غير موجود');
+            throw new UnauthorizedException('توكن غير موجود');
         }
-    
+
         const done = await this.authService.logout(token, this.redisService);
 
         if (!done) {
-          throw new UnauthorizedException('خطأ في تسجيل الخروج');
+            throw new UnauthorizedException('خطأ في تسجيل الخروج');
         }
-    
+
         return res.status(200).json({ message: 'تم تسجيل الخروج بنجاح' });
-      }
+    }
+
+
+
+    @Post('/verify-phone-number')
+    @UseInterceptors(AnyFilesInterceptor())
+    async verifyPhoneNumber(@Body('uid') uid: string, @Res() res: Response) {
+        try {
+            const user = await this.authService.checkIfUserExists(uid);
+    
+            return res.status(200).json({
+                message: 'تم التحقق من رقم الهاتف بنجاح',
+                data: user,
+            });
+        } catch (error) {
+            return res.status(400).json({
+                message: error.message || 'حدث خطأ أثناء التحقق من رقم الهاتف',
+            });
+        }
+    }
+    
 }
 
 

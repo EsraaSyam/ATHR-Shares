@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Role } from './user.enum';
+import { PaymentEntity } from 'src/payment/entities/payment.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -41,4 +42,11 @@ export class UserEntity {
 
   @Column({ nullable: true })
   is_completed: boolean = false;
+
+  @Column({ nullable: true })
+  is_verified: boolean = false;
+
+  @OneToMany(() => PaymentEntity, (payment) => payment.user, { cascade: true, eager: true })
+  @JoinColumn()
+  payments: PaymentEntity[];
 }

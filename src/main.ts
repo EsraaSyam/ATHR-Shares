@@ -34,6 +34,7 @@ async function bootstrap() {
 
   // const reflector = app.get(Reflector);
   // app.useGlobalInterceptors(new GlobalFileInterceptor(reflector));  
+  
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

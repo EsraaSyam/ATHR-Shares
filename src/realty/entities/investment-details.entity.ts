@@ -21,4 +21,7 @@ export class InvestmentDetailsEntity {
         month_18?: number;
         month_24?: number;
     };
+
+    @Column('double precision', {nullable: true})
+    service_charge: number = 0;
 }
