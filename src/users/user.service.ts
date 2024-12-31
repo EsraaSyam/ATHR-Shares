@@ -7,6 +7,7 @@ import * as bycrpt from 'bcrypt';
 import { UpdateUserRequest } from './requests/update-user.request';
 import { NotFoundException } from 'src/exceptions/not-found.exception';
 import { AuthService } from 'src/auth/auth.service';
+import { Role } from './user.enum';
 
 @Injectable()
 export class UsersService {
@@ -16,13 +17,16 @@ export class UsersService {
     ) { }
 
     async create(createUserRequest: CreateUserRequest) {
-        if (!createUserRequest.email ||!createUserRequest.password) {
+        if (!createUserRequest.email || !createUserRequest.password) {
             throw new BadRequestException('Email and password are required');
         }
         const [conflictingUsers] = await Promise.all([
             this.usersRepository.find({
                 where: [
-                    { email: createUserRequest.email },
+                    {
+                        email: createUserRequest.email,
+                        role: Role.USER,
+                    },
                 ],
             }),
         ]);
@@ -39,16 +43,16 @@ export class UsersService {
         return newUser;
     }
 
-    async updateById(id:number, updateUserRequest: UpdateUserRequest){
+    async updateById(id: number, updateUserRequest: UpdateUserRequest) {
         if (!Object.keys(updateUserRequest).length) {
             throw new BadRequestException('At least one field is required to update user');
         }
 
         const [user, conflictingUsers] = await Promise.all([
-            this.usersRepository.findOne({ where: { id } }),
+            this.usersRepository.findOne({ where: { id: id.toString() } }),
             this.usersRepository.find({
                 where: [
-                    { email: updateUserRequest.email, id: Not(id) },
+                    { email: updateUserRequest.email, id: Not(id.toString()) },
                 ],
             }),
         ]);
@@ -69,7 +73,7 @@ export class UsersService {
 
         await this.usersRepository.update(id, updatedFields);
 
-        const {password, ...updatedUser} = {...user, ...updatedFields};
+        const { password, ...updatedUser } = { ...user, ...updatedFields };
 
         return updatedUser;
     }
@@ -83,7 +87,7 @@ export class UsersService {
     }
 
     async findById(id: number) {
-        return this.usersRepository.findOne({ where: { id } });
+        return this.usersRepository.findOne({ where: { id: id.toString() } });
     }
 
     async softDeleteById(id: number) {
@@ -100,15 +104,4 @@ export class UsersService {
     async findByPhoneNumber(phone_number: string) {
         return this.usersRepository.findOne({ where: { phone_number } });
     }
-
-    async checkProfileCompleted(userId: number) {
-        const user = await this.findById(userId);
-
-        if (!user) {
-            throw new NotFoundException(`User with id ${userId} does not exist`);
-        }
-
-        return Boolean(user.id_photo !== null || user.passport_photo !== null);
-    }
-
 }

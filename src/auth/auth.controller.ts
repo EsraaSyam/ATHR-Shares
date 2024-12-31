@@ -63,7 +63,28 @@ export class AuthController {
         return res.status(201).json(
             {
                 message: 'تم تسجيل المستخدم بنجاح',
-                data: new User(user),
+                data: user,
+            }
+        );
+    }
+
+    @Post('/register-guest')
+    @UseInterceptors(AnyFilesInterceptor())
+    async registerGuest(@Res() res: Response) {
+        const user = await this.authService.generateFackData();
+
+        if (!user) {
+            return res.status(400).json(
+                {
+                    message: 'خطأ في تسجيل المستخدم',
+                }
+            );
+        }
+
+        return res.status(201).json(
+            {
+                message: 'تم تسجيل المستخدم بنجاح',
+                data: user
             }
         );
     }
@@ -129,21 +150,41 @@ export class AuthController {
     }
 
     @Post('/logout')
-    async logout(@Req() req, @Res() res: Response) {  
+    async logout(@Req() req, @Res() res: Response) {
         const token = req.headers['authorization'];
-    
+
         if (!token) {
-          throw new UnauthorizedException('توكن غير موجود');
+            throw new UnauthorizedException('توكن غير موجود');
         }
-    
+
         const done = await this.authService.logout(token, this.redisService);
 
         if (!done) {
-          throw new UnauthorizedException('خطأ في تسجيل الخروج');
+            throw new UnauthorizedException('خطأ في تسجيل الخروج');
         }
-    
+
         return res.status(200).json({ message: 'تم تسجيل الخروج بنجاح' });
-      }
+    }
+
+
+
+    @Post('/verify-phone-number')
+    @UseInterceptors(AnyFilesInterceptor())
+    async verifyPhoneNumber(@Body('uid') uid: string, @Res() res: Response) {
+        try {
+            const user = await this.authService.checkIfUserExists(uid);
+    
+            return res.status(200).json({
+                message: 'تم التحقق من رقم الهاتف بنجاح',
+                data: user,
+            });
+        } catch (error) {
+            return res.status(400).json({
+                message: error.message || 'حدث خطأ أثناء التحقق من رقم الهاتف',
+            });
+        }
+    }
+    
 }
 
 

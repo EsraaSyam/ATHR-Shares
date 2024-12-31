@@ -16,16 +16,19 @@ export class CreateUserRequest {
     @IsEmail({}, { message: 'Invalid email' })
     email: string;
 
-    @IsArray()
-    @ValidateNested({ each: true })
+   
     @IsOptional()
-    id_photo?: string[];
+    id_photo_front?: string;
 
-    @IsArray()
-    @ValidateNested({ each: true })
     @IsOptional()
-    passport_photo?: string[];
+    id_photo_back?: string;
+
+    @IsOptional()
+    passport_photo?: string;
 
     @IsOptional()
     is_active?: boolean = true;
+
+    @IsOptional()
+    is_verified?: boolean = false;
 }

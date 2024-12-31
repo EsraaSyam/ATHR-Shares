@@ -16,12 +16,17 @@ import { RealtyDetailsEntity } from './realty/entities/realty_details.entity';
 import { InvestmentDetailsEntity } from './realty/entities/investment-details.entity';
 import { RealtyImagesEntity } from './realty/entities/realty-images.entity';
 import { RealtyBackgroundEntity } from './realty/entities/realty-background.entity';
+import { PaymentModule } from './payment/payment.module';
+import { PaymentDetailsEntity } from './payment/entities/payment-details.entity';
+import { FirebaseModule } from './firebase/firebase.module';
+import { AdminModule } from './admin/admin.module';
+import { PaymentEntity } from './payment/entities/payment.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true,  
-      envFilePath: '.env',  
+      isGlobal: true,
+      envFilePath: '.env',
     }),
 
     TypeOrmModule.forRootAsync({
@@ -33,7 +38,9 @@ import { RealtyBackgroundEntity } from './realty/entities/realty-background.enti
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity, RealtyImagesEntity, RealtyBackgroundEntity],
+        entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity, RealtyImagesEntity, RealtyBackgroundEntity,
+          PaymentDetailsEntity, PaymentEntity
+        ],
         synchronize: true,
       }),
 
@@ -43,8 +50,11 @@ import { RealtyBackgroundEntity } from './realty/entities/realty-background.enti
     AuthModule,
     HomeModule,
     RealtyModule,
-    ],
+    PaymentModule,
+    FirebaseModule,
+    AdminModule,
+  ],
   controllers: [AppController],
   providers: [AppService, MailerService, RedisService],
 })
-export class AppModule {}
+export class AppModule { }
