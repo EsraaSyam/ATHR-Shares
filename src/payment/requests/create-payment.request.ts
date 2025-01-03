@@ -1,17 +1,24 @@
-import { IsOptional } from "class-validator";
+import { IsNotEmpty, IsOptional } from "class-validator";
+import { InstallmentType, PaymentTypes, PaymentMethods } from "../payment.enum";
 
 export class CreatePaymentRequest {
+    @IsNotEmpty({message: "Please enter realty id"})
     realty_id: number;
 
-    is_buy_unit: boolean;
+    @IsNotEmpty({message: "Please enter payment type"})
+    payment_type: PaymentTypes;
 
-    is_cash_payment: boolean;
+    @IsOptional()
+    installment_type: InstallmentType;
 
-    net_share_count: number;
+    @IsOptional()
+    net_share_count: number = 0;
 
-    installment_type: boolean[] = [false, false, false];
+    @IsNotEmpty({message: "Please enter payment method"})
+    payment_method: PaymentMethods;
 
-    payment_method: string;
+    // @IsNotEmpty({message: "Please upload payment image"})
+    payment_image?: string;
 
-    payment_image: string;
+    user_id: number;
 }

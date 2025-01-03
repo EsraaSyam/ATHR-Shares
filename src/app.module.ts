@@ -17,7 +17,7 @@ import { InvestmentDetailsEntity } from './realty/entities/investment-details.en
 import { RealtyImagesEntity } from './realty/entities/realty-images.entity';
 import { RealtyBackgroundEntity } from './realty/entities/realty-background.entity';
 import { PaymentModule } from './payment/payment.module';
-import { PaymentDetailsEntity } from './payment/entities/payment-details.entity';
+import { PriceDetailsEntity } from './payment/entities/price-details.entity';
 import { FirebaseModule } from './firebase/firebase.module';
 import { AdminModule } from './admin/admin.module';
 import { PaymentEntity } from './payment/entities/payment.entity';
@@ -39,7 +39,7 @@ import { PaymentEntity } from './payment/entities/payment.entity';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity, RealtyImagesEntity, RealtyBackgroundEntity,
-          PaymentDetailsEntity, PaymentEntity
+          PriceDetailsEntity, PaymentEntity
         ],
         synchronize: true,
       }),

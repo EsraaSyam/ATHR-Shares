@@ -3,6 +3,7 @@ import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn
 import { InvestmentDetailsEntity } from "./investment-details.entity";
 import { RealtyImagesEntity } from "./realty-images.entity";
 import { RealtyBackgroundEntity } from "./realty-background.entity";
+import { PriceDetailsEntity } from "src/payment/entities/price-details.entity";
 
 @Entity('realty')
 export class RealtyEntity {
@@ -49,5 +50,8 @@ export class RealtyEntity {
 
     @OneToMany(() => RealtyImagesEntity, (image) => image.realty, { cascade: true })
     images?: RealtyImagesEntity[];
+
+    @OneToMany(() => PriceDetailsEntity, (priceDetails) => priceDetails.realty, {nullable: true} )
+    priceDetails: PriceDetailsEntity[];
 
 }

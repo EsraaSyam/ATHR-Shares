@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { UserEntity } from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
@@ -8,6 +8,9 @@ import { UpdateUserRequest } from './requests/update-user.request';
 import { NotFoundException } from 'src/exceptions/not-found.exception';
 import { AuthService } from 'src/auth/auth.service';
 import { Role } from './user.enum';
+import { UserProfileResponse } from './responses/user-profile.response';
+import { UpdateProfileRequest } from './requests/update-profile.request';
+import { UserAlreadyExist } from 'src/exceptions/user-already-exist.exception';
 
 @Injectable()
 export class UsersService {
@@ -87,7 +90,7 @@ export class UsersService {
     }
 
     async findById(id: number) {
-        return this.usersRepository.findOne({ where: { id: id.toString() } });
+        return this.usersRepository.findOne({ where: { id: id.toString() }, relations: ['payments'] });
     }
 
     async softDeleteById(id: number) {
@@ -104,4 +107,59 @@ export class UsersService {
     async findByPhoneNumber(phone_number: string) {
         return this.usersRepository.findOne({ where: { phone_number } });
     }
+
+
+    async getProfileData(id: string) {
+        const user = await this.usersRepository.findOne({ where: { id: id } });
+
+        if (!user) {
+            throw new NotFoundException(`User with id ${id} does not exist`);
+        }
+
+        return new UserProfileResponse(user);
+    }
+
+    async updateProfile(id: string, updateProfileRequest: UpdateProfileRequest) {
+        const [user, conflictingUsers] = await Promise.all([
+            this.usersRepository.findOne({ where: { id } }),
+            updateProfileRequest.email
+                ? this.usersRepository.find({
+                    where: [{ email: updateProfileRequest.email, id: Not(id) }],
+                })
+                : [],
+        ]);
+
+        if (!user) {
+            throw new NotFoundException(`User with id ${id} does not exist`);
+        }
+
+        if (conflictingUsers.length > 0) {
+            throw new UserAlreadyExist('User with this email already exists');
+        }
+
+        const updatedFields: Partial<UserEntity> = {};
+
+        Object.entries(updateProfileRequest).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                updatedFields[key] = value;
+            } else {
+                updatedFields[key] = user[key];
+            }
+        });
+
+        await this.usersRepository.update(id, updatedFields);
+        const updatedUser = await this.usersRepository.findOne({ where: { id } });
+
+        if (!updatedUser) {
+            throw new InternalServerErrorException('Failed to update user');
+        }
+
+        return new UserProfileResponse(updatedUser);
+    }
+
+
+
+
+
+
 }

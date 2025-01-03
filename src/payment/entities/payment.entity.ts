@@ -1,27 +1,36 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { PaymentDetailsEntity } from "./payment-details.entity";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { UserEntity } from "src/users/user.entity";
+import { InstallmentType, PaymentTypes, PaymentMethods, PaymentStatus } from "../payment.enum";
+import { PriceDetailsEntity } from "./price-details.entity";
 
 @Entity('payment')
 export class PaymentEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column('jsonb', { nullable: true })
-    price_details: PaymentDetailsEntity
-
-    @Column('boolean', { array: true, nullable: true })
-    payment_methods: boolean[] = [false, false, false];
+    @Column()
+    payment_type: PaymentTypes;
 
     @Column({ nullable: true })
-    payment_status: boolean = false;
-
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
-    payment_date: Date;
+    net_share_count: number = 0;
 
     @Column({ nullable: true })
+    installment_type: InstallmentType;
+
+    @Column()
+    payment_method: PaymentMethods;
+
+    @Column()
     payment_image: string;
 
-    @ManyToOne(() => UserEntity, (user) => user.payments)
+    @OneToOne(() => PriceDetailsEntity, { cascade: true, eager: true })
+    @JoinColumn()
+    price_details: PriceDetailsEntity;
+
+    @Column({ nullable: true })
+    payment_status: PaymentStatus = PaymentStatus.PENDING;
+
+    @ManyToOne(() => UserEntity, (user) => user.payments, { nullable: true, onDelete: 'SET NULL' })
+    @JoinColumn({ name: 'user_id' }) 
     user: UserEntity;
 }

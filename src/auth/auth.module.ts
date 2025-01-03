@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { forwardRef, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from 'src/users/user.module';
@@ -9,11 +9,12 @@ import { RedisService } from 'src/config/redis.service';
 import { TokenBlacklistMiddleware } from './middleware/token-blacklist.middleware';
 
 @Module({
-  imports:[UsersModule,
+  imports:[
     JwtModule.register({
       secret: 'sira',
       signOptions: { expiresIn: '7d' },
     }),
+    forwardRef(() => UsersModule),
   ],
   controllers: [AuthController],
   providers: [AuthService, MailerService, RedisService],

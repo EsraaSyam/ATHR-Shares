@@ -46,7 +46,6 @@ export class UserEntity {
   @Column({ nullable: true })
   is_verified: boolean = false;
 
-  @OneToMany(() => PaymentEntity, (payment) => payment.user, { cascade: true, eager: true })
-  @JoinColumn()
+  @OneToMany(() => PaymentEntity, (payment) => payment.user) 
   payments: PaymentEntity[];
 }

@@ -25,13 +25,13 @@ export class RealtyService {
     async findAll() {
         return this.realtysRepository.find(
             {
-                relations: ['details', 'investmentDetails', 'images'],
+                relations: ['details', 'investmentDetails', 'images', 'priceDetails'],
             }
         );
     }
 
     async findRealtyById(id: number) {
-        const realty = this.realtysRepository.findOne({ where: { id }, relations: ['details', 'investmentDetails', 'images'] });
+        const realty = this.realtysRepository.findOne({ where: { id }, relations: ['details', 'investmentDetails', 'images', 'priceDetails'] });
 
         if (!realty) {
             throw new NotFoundException(`Realty of id ${id} does not exist`);
@@ -39,6 +39,7 @@ export class RealtyService {
 
         return realty;
     }
+
     async createRealty(createRealtyRequest: CreateRealtyRequest, files: Express.Multer.File[], backgroundImageUrl: string) {
         const { details, investment_details, images, ...realtyData } = createRealtyRequest;
     
@@ -80,6 +81,9 @@ export class RealtyService {
     
         return savedRealty;
     }
+
+    
+
     
 
 

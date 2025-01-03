@@ -168,6 +168,10 @@ export class AuthService {
         return user;
     }
 
+    async findByPhoneNumber(phone_number: string) {
+        return this.usersService.findByPhoneNumber(phone_number);
+    }
+
     async checkIfUserExists(uid: string) {
         const user = await admin.auth().getUser(uid);
 
@@ -175,8 +179,8 @@ export class AuthService {
             throw new UnauthorizedException('User does not exist');
         }
 
-        const email = user.email;
-        const userExist = await this.usersService.findByEmail(email);
+        const phone_number = user.phoneNumber;
+        const userExist = await this.usersService.findByPhoneNumber(phone_number);
 
         if(!userExist) {
             throw new UnauthorizedException('User does not exist');
@@ -187,7 +191,5 @@ export class AuthService {
         await this.usersService.updateById(Number(userExist.id), userExist);
 
         return user;
-
-        
     }
 }
