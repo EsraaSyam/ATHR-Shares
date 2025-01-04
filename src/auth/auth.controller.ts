@@ -8,7 +8,6 @@ import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import { ForgetPasswordRequest } from './requests/forgetPassword.request';
 import { CheakCodeRequest } from './requests/cheakCode.request';
 import { ResetPasswordRequest } from './requests/resetPassword.request';
-import { RedisService } from 'src/config/redis.service';
 import { Response } from 'express';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
@@ -17,7 +16,6 @@ import { AnyFilesInterceptor } from '@nestjs/platform-express';
 export class AuthController {
     constructor(
         private readonly authService: AuthService,
-        private readonly redisService: RedisService,
     ) { }
 
     @Post('login')
@@ -157,7 +155,9 @@ export class AuthController {
             throw new UnauthorizedException('توكن غير موجود');
         }
 
-        const done = await this.authService.logout(token, this.redisService);
+        const user = await this.authService.getUserByToken(token);
+        
+        const done = await this.authService.logout(user.id);
 
         if (!done) {
             throw new UnauthorizedException('خطأ في تسجيل الخروج');

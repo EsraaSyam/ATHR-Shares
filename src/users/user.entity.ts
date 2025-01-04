@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Role } from './user.enum';
 import { PaymentEntity } from 'src/payment/entities/payment.entity';
+import { TokenEntity } from 'src/auth/token.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -48,4 +49,7 @@ export class UserEntity {
 
   @OneToMany(() => PaymentEntity, (payment) => payment.user) 
   payments: PaymentEntity[];
+
+  @OneToMany(() => TokenEntity, token => token.user)
+  tokens: TokenEntity[];
 }

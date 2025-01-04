@@ -7,7 +7,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserEntity } from './users/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { MailerService } from './mailer/mailer.service';
-import { RedisService } from './config/redis.service';
 import { HomeModule } from './home/home.module';
 import { BannerEntity } from './home/banner.entity';
 import { RealtyModule } from './realty/realty.module';
@@ -21,6 +20,7 @@ import { PriceDetailsEntity } from './payment/entities/price-details.entity';
 import { FirebaseModule } from './firebase/firebase.module';
 import { AdminModule } from './admin/admin.module';
 import { PaymentEntity } from './payment/entities/payment.entity';
+import { TokenEntity } from './auth/token.entity';
 
 @Module({
   imports: [
@@ -39,7 +39,7 @@ import { PaymentEntity } from './payment/entities/payment.entity';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity, RealtyImagesEntity, RealtyBackgroundEntity,
-          PriceDetailsEntity, PaymentEntity
+          PriceDetailsEntity, PaymentEntity, TokenEntity,
         ],
         synchronize: true,
       }),
@@ -55,6 +55,6 @@ import { PaymentEntity } from './payment/entities/payment.entity';
     AdminModule,
   ],
   controllers: [AppController],
-  providers: [AppService, MailerService, RedisService],
+  providers: [AppService, MailerService],
 })
 export class AppModule { }

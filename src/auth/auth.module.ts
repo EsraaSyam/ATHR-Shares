@@ -5,24 +5,22 @@ import { UsersModule } from 'src/users/user.module';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/user.service';
 import { MailerService } from 'src/mailer/mailer.service';
-import { RedisService } from 'src/config/redis.service';
-import { TokenBlacklistMiddleware } from './middleware/token-blacklist.middleware';
+import { TokenEntity } from './token.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports:[
     JwtModule.register({
       secret: 'sira',
-      signOptions: { expiresIn: '7d' },
     }),
     forwardRef(() => UsersModule),
+    TypeOrmModule.forFeature([TokenEntity]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, MailerService, RedisService],
+  providers: [AuthService, MailerService],
   exports: [AuthService],
 })
 
-export class AuthModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(TokenBlacklistMiddleware).forRoutes('auth/logout');
-  }
+export class AuthModule {
+  
 }

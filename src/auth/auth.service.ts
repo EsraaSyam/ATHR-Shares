@@ -8,10 +8,12 @@ import * as crypto from 'crypto';
 import { UserEntity } from 'src/users/user.entity';
 import { RegisterRequest } from './requests/register.request';
 import { User } from './responses/user.response';
-import { RedisService } from 'src/config/redis.service';
 import { UserAlreadyExist } from 'src/exceptions/user-already-exist.exception';
 import { Role } from 'src/users/user.enum';
 import * as admin from 'firebase-admin';
+import { TokenEntity } from './token.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +21,8 @@ export class AuthService {
         private readonly usersService: UsersService,
         private readonly mailerService: MailerService,
         private readonly jwtService: JwtService,
-        private readonly redisService: RedisService,
+        @InjectRepository(TokenEntity)
+        private tokenRepository: Repository<TokenEntity>,
     ) { }
 
     async validateUser(phone_number: string, password: string) {
@@ -39,7 +42,17 @@ export class AuthService {
     async login(user: any) {
         const payload = { email: user.email, sub: user.id, role: user.role };
 
-        return this.jwtService.sign(payload);
+        const accessToken = this.jwtService.sign(payload);
+
+        const token = new TokenEntity();
+
+        token.accessToken = accessToken;
+
+        token.user = user; 
+
+        await this.tokenRepository.save(token);
+
+        return accessToken;
     }
 
     async registerUser(registerRequest: RegisterRequest) {
@@ -56,6 +69,11 @@ export class AuthService {
 
         const payload = { email: newUser.email, sub: newUser.id, role: newUser.role };
         const token = this.jwtService.sign(payload);
+
+        const tokenEntity = new TokenEntity();
+        tokenEntity.accessToken = token;
+        tokenEntity.user = newUser;
+        await this.tokenRepository.save(tokenEntity);
 
         return {
             token,
@@ -74,10 +92,16 @@ export class AuthService {
 
         const new_Guest = await this.usersService.create(user);
 
+        const token = this.jwtService.sign({ email: user.email, sub: user.id, role: user.role });
+        const tokenEntity = new TokenEntity();
+
+        tokenEntity.accessToken = token;
+        tokenEntity.user = new_Guest;
+        await this.tokenRepository.save(tokenEntity);
         return {
-            token: this.jwtService.sign({ email: user.email, sub: user.id, role: user.role }),
+            token,
             user: new_Guest,
-        }
+        };
     }
 
 
@@ -137,36 +161,39 @@ export class AuthService {
         return true;
     }
 
-    async logout(token: string, redisService: RedisService) {
-        const decoded = this.jwtService.decode(token);
-
-        const expiresIn = decoded.exp - Math.floor(Date.now() / 1000);
-
-        await redisService.setTokenInBlacklist(token, expiresIn);
-        return true;
+    async logout(id: string) {
+        await this.tokenRepository.delete({ user: { id: id } });
+        return { message: 'Logged out successfully' };
     }
 
     async getUserByToken(token: string) {
-        if (!token) return null;
-
-        const blacklisted = await this.redisService.isTokenBlacklisted(token);
-
-        const decoded = await this.jwtService.decode(token);
-
-        if (!decoded || !decoded.exp) {
-            throw new UnauthorizedException('Invalid token or expired');
+        if (!token) {
+            throw new UnauthorizedException('Token not provided');
         }
-
-        if (blacklisted) return null;
-
-        const isExpired = decoded.exp < Math.floor(Date.now() / 1000);
-
-        if (isExpired) return null;
-
-        const user = await this.usersService.findByEmail(decoded.email);
-
-        return user;
+    
+        try {
+            const decoded: any = await this.jwtService.verifyAsync(token);
+    
+            if (!decoded || !decoded.email) {
+                throw new UnauthorizedException('Invalid token');
+            }
+    
+            const user = await this.usersService.findByEmail(decoded.email);
+    
+            if (!user) {
+                throw new UnauthorizedException('User not found');
+            }
+    
+            if (!user.tokens || user.tokens.length === 0) {
+                throw new UnauthorizedException('Your session has expired');
+            }
+    
+            return user;
+        } catch (error) {
+            throw new UnauthorizedException('Invalid or expired token');
+        }
     }
+    
 
     async findByPhoneNumber(phone_number: string) {
         return this.usersService.findByPhoneNumber(phone_number);
