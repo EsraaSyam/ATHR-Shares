@@ -2,11 +2,15 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn
 import { UserEntity } from "src/users/user.entity";
 import { InstallmentType, PaymentTypes, PaymentMethods, PaymentStatus } from "../payment.enum";
 import { PriceDetailsEntity } from "./price-details.entity";
+import { InvestmentPaymentDetailsEntity } from "src/investment/investment-details.entity";
 
 @Entity('payment')
 export class PaymentEntity {
     @PrimaryGeneratedColumn()
     id: number;
+
+    @Column({nullable: true})
+    realty_id: number;
 
     @Column()
     payment_type: PaymentTypes;
@@ -31,6 +35,18 @@ export class PaymentEntity {
     payment_status: PaymentStatus = PaymentStatus.PENDING;
 
     @ManyToOne(() => UserEntity, (user) => user.payments, { nullable: true, onDelete: 'SET NULL' })
-    @JoinColumn({ name: 'user_id' }) 
+    @JoinColumn({ name: 'user_id' })
     user: UserEntity;
+
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' , nullable: true })
+    created_at: Date = new Date();
+
+    @Column({ type: 'timestamp', nullable: true })
+    last_installment_payment: Date;
+
+    @Column({ type: 'timestamp', nullable: true })
+    next_payment_date: Date;
+
+    @OneToOne(() => InvestmentPaymentDetailsEntity, (investmentPaymentDetails) => investmentPaymentDetails.payment)
+    investment_payment_details: InvestmentPaymentDetailsEntity;
 }

@@ -142,6 +142,8 @@ export class PaymentService {
 
         const payment = new PaymentEntity();
 
+        payment.realty_id = createPaymentRequest.realty_id;
+
         payment.price_details = priceDetails;
 
         payment.payment_type = createPaymentRequest.payment_type;
@@ -153,6 +155,14 @@ export class PaymentService {
         payment.payment_method = createPaymentRequest.payment_method;
 
         payment.payment_image = createPaymentRequest.payment_image;
+
+        payment.last_installment_payment = new Date();
+
+        const nextPaymentDate = new Date(payment.last_installment_payment);
+
+        nextPaymentDate.setDate(nextPaymentDate.getDate() + 30); // 30 days
+
+        payment.next_payment_date = nextPaymentDate;
 
         payment.user = { id: createPaymentRequest.user_id } as any;
 

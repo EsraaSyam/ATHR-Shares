@@ -31,4 +31,7 @@ export class CreateUserRequest {
 
     @IsOptional()
     is_verified?: boolean = false;
+
+    @IsOptional()
+    is_completed?: boolean = false;
 }

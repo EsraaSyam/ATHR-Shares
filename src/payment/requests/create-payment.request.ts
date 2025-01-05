@@ -20,5 +20,6 @@ export class CreatePaymentRequest {
     // @IsNotEmpty({message: "Please upload payment image"})
     payment_image?: string;
 
-    user_id: number;
+    @IsOptional()
+    user_id?: number;
 }

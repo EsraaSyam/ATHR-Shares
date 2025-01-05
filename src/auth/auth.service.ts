@@ -33,7 +33,7 @@ export class AuthService {
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (user && isPasswordValid) {
-            return new User(user);
+            return user;
         }
 
         return null;
@@ -167,32 +167,25 @@ export class AuthService {
     }
 
     async getUserByToken(token: string) {
-        if (!token) {
-            throw new UnauthorizedException('Token not provided');
+        const decoded: any = this.jwtService.decode(token);
+        
+        if (!decoded || !decoded.email) {
+            throw new UnauthorizedException('Invalid token');
         }
     
-        try {
-            const decoded: any = await this.jwtService.verifyAsync(token);
+        const user = await this.usersService.findByEmail(decoded.email);
     
-            if (!decoded || !decoded.email) {
-                throw new UnauthorizedException('Invalid token');
-            }
-    
-            const user = await this.usersService.findByEmail(decoded.email);
-    
-            if (!user) {
-                throw new UnauthorizedException('User not found');
-            }
-    
-            if (!user.tokens || user.tokens.length === 0) {
-                throw new UnauthorizedException('Your session has expired');
-            }
-    
-            return user;
-        } catch (error) {
-            throw new UnauthorizedException('Invalid or expired token');
+        if (!user) {
+            throw new UnauthorizedException('User not found');
         }
+    
+        if (!user.tokens || user.tokens.length === 0) {
+            throw new UnauthorizedException('Your session has expired');
+        }
+    
+        return user;
     }
+    
     
 
     async findByPhoneNumber(phone_number: string) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Res, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { RealtyService } from './realty.service';
 import { CreateRealtyRequest } from './requests/create-realty.request';
 import { Response } from 'express';
@@ -6,8 +6,12 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { fileUploadOptions } from 'src/common/utils/file-upload.util';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/users/user.enum';
 
 @Controller('realty')
+@UseGuards(RolesGuard)
 export class RealtyController {
     constructor(private readonly realtyService: RealtyService) { }
 
@@ -23,6 +27,7 @@ export class RealtyController {
 
 
     @Post('/create')
+    @Roles(Role.ADMIN)
     @UseInterceptors(
         FilesInterceptor('images', 10, {
             storage: diskStorage({
@@ -36,10 +41,12 @@ export class RealtyController {
     )
     async createRealty(
         @Body() createRealtyRequest: CreateRealtyRequest,
+        @Req() req,  
         @UploadedFiles() files: Express.Multer.File[],
         @Res() res,
     ) {
         try {
+
             const backgroundImageFile = files[0];
             const realtyImages = files.slice(1);
 
@@ -91,6 +98,7 @@ export class RealtyController {
     }
 
     @Delete('/delete/:id')
+    @Roles(Role.ADMIN)
     async deleteRealty(@Param('id') id: number, @Res() res: Response) {
         await this.realtyService.deleteRealty(id);
         return res.status(200).json(

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { PriceDetailsEntity } from './entities/price-details.entity';
 import { Response } from 'express';
@@ -6,7 +6,11 @@ import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { CreatePaymentRequest } from './requests/create-payment.request';
 import { GetPaymentDetailsRequest } from './requests/get-payment-detils.request';
 import { AuthService } from 'src/auth/auth.service';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/users/user.enum';
 
+@UseGuards(RolesGuard)
 @Controller('payment')
 export class PaymentController {
     constructor( 
@@ -16,8 +20,11 @@ export class PaymentController {
     ) { }
 
     @Get('price-details')
+    @Roles(Role.GUEST, Role.USER)
     @UseInterceptors(AnyFilesInterceptor())
-    async getPriceDetails(@Body() getPaymrntDetailsRequest:GetPaymentDetailsRequest, @Res() res: Response){
+    async getPriceDetails(@Body() getPaymrntDetailsRequest:GetPaymentDetailsRequest,@Req() req, @Res() res: Response){
+        const user = req.user;
+        console.log(user)
         const paymentDetails = await this.paymentService.getPriceDetails(getPaymrntDetailsRequest);
         return res.status(200).json({
             message: 'تمت بنجاح',
@@ -26,17 +33,10 @@ export class PaymentController {
     }
 
     @Post('create-payment')
+    @Roles(Role.USER)
     @UseInterceptors(FileInterceptor('payment_image'))
     async createPayment(@Body() createPaymentRequest :CreatePaymentRequest, @Req() req,  @UploadedFile() file: Express.Multer.File, @Res() res: Response){
-        const token = req.headers['authorization'];
-
-        if (!token) {
-            return res.status(401).json({
-                message: 'لا يوجد توكن',
-            });
-        }
-
-        const user = await this.authService.getUserByToken(token);
+        const user = req.user; 
 
         if (!user) {
             return res.status(401).json({
@@ -44,7 +44,7 @@ export class PaymentController {
             });
         }
 
-        createPaymentRequest.user_id = Number(user.id);
+        createPaymentRequest.user_id = Number(user.sub);
 
 
         createPaymentRequest.payment_image = `http://localhost:${process.env.PORT}/uploads/${file.fieldname}`;

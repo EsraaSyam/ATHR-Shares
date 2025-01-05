@@ -34,4 +34,7 @@ export class RegisterRequest {
 
     @IsOptional()
     is_verified?: boolean = false;
+
+    @IsOptional()
+    is_completed?: boolean = false;
 }

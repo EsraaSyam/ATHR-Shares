@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Res, UnauthorizedException, UseFilters, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UnauthorizedException, UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginRequest } from './requests/login.request';
 import { RegisterRequest } from './requests/register.request';
@@ -10,8 +10,12 @@ import { CheakCodeRequest } from './requests/cheakCode.request';
 import { ResetPasswordRequest } from './requests/resetPassword.request';
 import { Response } from 'express';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/users/user.enum';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 
 @Controller('auth')
+@UseGuards(RolesGuard)
 @UseFilters(new HttpExceptionFilter())
 export class AuthController {
     constructor(
@@ -38,7 +42,7 @@ export class AuthController {
                 message: 'تم تسجيل الدخول بنجاح',
                 data: {
                     token: token,
-                    user: user,
+                    user: new User(user),
                 }
             }
         );
@@ -88,8 +92,10 @@ export class AuthController {
     }
 
     @Post('/forgot-password')
+    @Roles(Role.USER)
     @UseInterceptors(AnyFilesInterceptor())
-    async forgotPassword(@Body() forgetPasswordRequest: ForgetPasswordRequest, @Res() res) {
+    async forgotPassword(@Body() forgetPasswordRequest: ForgetPasswordRequest, @Req() req, @Res() res) {
+        const user = req.user;
         const done = await this.authService.sendRestPasswordCode(forgetPasswordRequest.email);
 
         if (!done) {
@@ -128,8 +134,9 @@ export class AuthController {
     }
 
     @Post('/reset-password')
+    @Roles(Role.USER)
     @UseInterceptors(AnyFilesInterceptor())
-    async resetPassword(@Body() resetPasswordRequest: ResetPasswordRequest, @Res() res) {
+    async resetPassword(@Body() resetPasswordRequest: ResetPasswordRequest, @Req() req ,@Res() res) {
         const done = await this.authService.resetPassword(resetPasswordRequest.email, resetPasswordRequest.newPassword, resetPasswordRequest.confirmPassword);
 
         if (!done) {

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/user.module';
@@ -21,9 +21,17 @@ import { FirebaseModule } from './firebase/firebase.module';
 import { AdminModule } from './admin/admin.module';
 import { PaymentEntity } from './payment/entities/payment.entity';
 import { TokenEntity } from './auth/token.entity';
+import { AuthMiddleware } from './auth/middleware/auth.middleware';
+import { JwtModule } from '@nestjs/jwt';
+import { InvestmentModule } from './investment/investment.module';
+import { InvestmentPaymentDetailsEntity } from './investment/investment-details.entity';
 
 @Module({
   imports: [
+    JwtModule.register({
+      secret: 'sira',
+    }),
+
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -39,7 +47,7 @@ import { TokenEntity } from './auth/token.entity';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity, RealtyImagesEntity, RealtyBackgroundEntity,
-          PriceDetailsEntity, PaymentEntity, TokenEntity,
+          PriceDetailsEntity, PaymentEntity, TokenEntity,InvestmentPaymentDetailsEntity
         ],
         synchronize: true,
       }),
@@ -53,8 +61,14 @@ import { TokenEntity } from './auth/token.entity';
     PaymentModule,
     FirebaseModule,
     AdminModule,
+    InvestmentModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailerService],
 })
-export class AppModule { }
+
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthMiddleware).forRoutes('*');
+  }
+}
