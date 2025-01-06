@@ -11,6 +11,7 @@ import { extname } from 'path';
 
 @Controller('home')
 export class HomeController {
+    // new change
     constructor(
         private readonly UsersService: UsersService,
         private readonly AuthService: AuthService,
