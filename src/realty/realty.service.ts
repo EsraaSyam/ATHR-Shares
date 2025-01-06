@@ -8,6 +8,7 @@ import { RealtyDetailsEntity } from './entities/realty_details.entity';
 import { InvestmentDetailsEntity } from './entities/investment-details.entity';
 import { RealtyImagesEntity } from './entities/realty-images.entity';
 import { RealtyBackgroundEntity } from './entities/realty-background.entity';
+import { title } from 'process';
 
 @Injectable()
 export class RealtyService {
@@ -97,6 +98,22 @@ export class RealtyService {
         }
 
         return realtys.map((realty) => new RealtyResponse(realty));
+    }
+
+    async getHomeAvaliableRealty() {
+        const realtys = await this.realtysRepository.find({ where: { is_avaliable: true, is_active: true }, relations: ['details', 'investmentDetails', 'images'] });
+
+        if (!realtys || realtys.length === 0) {
+            throw new NotFoundException('لا توجد عقارات متاحة');
+        }
+
+        return realtys.map((realty) => ({
+            title: realty.title,
+            owner_name: realty.owner_name,
+            down_payment: realty.down_payment,
+            background_image: realty.images[0].image_url,
+           
+        }));
     }
 
     async getSoldRealty() {

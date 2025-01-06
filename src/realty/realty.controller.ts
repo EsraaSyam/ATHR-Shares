@@ -31,7 +31,7 @@ export class RealtyController {
     @UseInterceptors(
         FilesInterceptor('images', 10, {
             storage: diskStorage({
-                destination: './uploads',
+                destination: './uploads/realty_images',
                 filename: (req, file, callback) => {
                     const uniqueName = `${Date.now()}${extname(file.originalname)}`;
                     callback(null, uniqueName);
@@ -50,9 +50,9 @@ export class RealtyController {
             const backgroundImageFile = files[0];
             const realtyImages = files.slice(1);
 
-            const realtyImageUrls = realtyImages.map(file => `http://localhost:${process.env.PORT}/uploads/${file.filename}`);
+            const realtyImageUrls = realtyImages.map(file => `https://athrshares.com/uploads/realty_images/${file.filename}`);
             const backgroundImageUrl = backgroundImageFile
-                ? `http://localhost:${process.env.PORT}/uploads/${backgroundImageFile.filename}`
+                ? `https://athrshares.com/uploads/realty_images/${backgroundImageFile.filename}`
                 : null;
 
 
@@ -93,6 +93,18 @@ export class RealtyController {
         return res.status(200).json(
             {
                 data: realty,
+            }
+        );
+    }
+
+    @Get('/home/avaliable_realty')
+    async getHomeAvaliableRealty(@Res() res: Response) {
+        const realtys = await this.realtyService.getHomeAvaliableRealty();
+        return res.status(200).json(
+            {
+                data: {
+                    realtys,
+                }
             }
         );
     }

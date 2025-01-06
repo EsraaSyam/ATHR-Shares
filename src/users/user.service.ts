@@ -157,9 +157,4 @@ export class UsersService {
         return new UserProfileResponse(updatedUser);
     }
 
-
-
-
-
-
 }

@@ -38,7 +38,7 @@ export class HomeController {
         }
 
 
-        const fileUrl = `http://localhost:${process.env.PORT}/uploads/images/${file.filename}`;
+        const fileUrl = `https://athrshares.com/uploads/home_baner/${file.filename}`;
 
         await this.homeService.saveBannerImageUrl(fileUrl, body.description);
 
@@ -64,7 +64,7 @@ export class HomeController {
     @UseInterceptors(
         FilesInterceptor('images', 1, {
             storage: diskStorage({
-                destination: './uploads',
+                destination: './uploads/passport_images',
                 filename: (req, file, callback) => {
                     const uniqueName = `${Date.now()}${extname(file.originalname)}`;
                     callback(null, uniqueName);
@@ -94,7 +94,7 @@ export class HomeController {
                 message: 'Please upload both front and back images',
             });
         }
-        const fileUrls = `http://localhost:${process.env.PORT}/uploads/images/${file.filename}`;
+        const fileUrls = `https://athrshares.com/uploads/passport_images/${file.filename}`;
         await this.homeService.uploadPassport(
             user,
             fileUrls,
@@ -110,7 +110,7 @@ export class HomeController {
     @UseInterceptors(
         FilesInterceptor('images', 2, {
             storage: diskStorage({
-                destination: './uploads',
+                destination: './uploads/id_images',
                 filename: (req, file, callback) => {
                     const uniqueName = `${Date.now()}${extname(file.originalname)}`;
                     callback(null, uniqueName);
@@ -141,7 +141,7 @@ export class HomeController {
             });
         }
         const fileUrls = files.map(
-            (file) => `http://localhost:${process.env.PORT}/uploads/${file.filename}`,
+            (file) => `https://athrshares.com/uploads/id_images/${file.filename}`,
         );
         await this.homeService.uploadIdPhotos(
             user,

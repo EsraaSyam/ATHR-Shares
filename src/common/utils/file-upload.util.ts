@@ -3,7 +3,7 @@ import { extname as getExtname } from 'path';
 
 export const fileUploadOptions = {
     storage: diskStorage({
-        destination: './uploads/images',
+        destination: './uploads/home_baner',
         filename: (req, file, cb) => {
             const fileName = `${Date.now()}${getExtname(file.originalname)}`;  
             cb(null, fileName);

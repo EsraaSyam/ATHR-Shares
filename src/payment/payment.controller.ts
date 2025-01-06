@@ -9,6 +9,8 @@ import { AuthService } from 'src/auth/auth.service';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/users/user.enum';
+import { extname } from 'path';
+import { diskStorage } from 'multer';
 
 @UseGuards(RolesGuard)
 @Controller('payment')
@@ -34,7 +36,15 @@ export class PaymentController {
 
     @Post('create-payment')
     @Roles(Role.USER)
-    @UseInterceptors(FileInterceptor('payment_image'))
+    @UseInterceptors(FileInterceptor('payment_image', {
+        storage: diskStorage({
+            destination: './uploads/payment_images',
+            filename: (req, file, callback) => {
+                const uniqueName = `${Date.now()}${extname(file.originalname)}`;
+                callback(null, uniqueName);
+            },
+        }),
+    }))
     async createPayment(@Body() createPaymentRequest :CreatePaymentRequest, @Req() req,  @UploadedFile() file: Express.Multer.File, @Res() res: Response){
         const user = req.user; 
 
@@ -47,7 +57,7 @@ export class PaymentController {
         createPaymentRequest.user_id = Number(user.sub);
 
 
-        createPaymentRequest.payment_image = `http://localhost:${process.env.PORT}/uploads/${file.fieldname}`;
+        createPaymentRequest.payment_image = `https://athrshares.com/uploads/payment_images/${file.fieldname}`;
 
         const payment = await this.paymentService.createPayment(createPaymentRequest);
 
