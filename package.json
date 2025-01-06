@@ -13,7 +13,8 @@
     "start:debug": "nest start --debug --watch",
     "start:prod:debug": "nest start --debug",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "format": "prettier --write \"{src,apps,libs,test}/**/*.ts\""
+    "format": "prettier --write \"{src,apps,libs,test}/**/*.ts\"",
+    "build": "tsc -p tsconfig.build.json"
   },
   "author": "",
   "license": "ISC",
