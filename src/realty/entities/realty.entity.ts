@@ -11,10 +11,10 @@ export class RealtyEntity {
     id: number;
 
     @Column({ nullable: true, default: true })
-    is_avaliable?: boolean;
+    is_avaliable?: boolean = true;
 
     @Column({ nullable: true, default: true })
-    is_active?: boolean;
+    is_active?: boolean = true;
 
     @OneToOne(() => RealtyBackgroundEntity, { cascade: true })
     background_image: RealtyBackgroundEntity;

@@ -19,6 +19,7 @@ export class PaymentService {
         @InjectRepository(PriceDetailsEntity)
         private priceDetailsRepository: Repository<PriceDetailsEntity>,
     ) { }
+    
 
     async getPriceDetails(getPaymentDetailsRequest: GetPaymentDetailsRequest) {
         const realty = await this.realtysRepository.findOne({ where: { id: getPaymentDetailsRequest.realty_id }, relations: ['details', 'investmentDetails', 'images'] });

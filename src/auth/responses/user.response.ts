@@ -6,6 +6,8 @@ export class User {
     email: string;
     phone_number: string;
     is_completed: boolean;
+    profile_photo: string;
+    
 
     constructor(user: any) {
         this.id = user.id;
@@ -16,6 +18,7 @@ export class User {
         this.email = user.email;
         this.phone_number = user.phone_number;
         this.is_completed = user.is_completed;
+        this.profile_photo = user.profile_photo;
 
     }
 }

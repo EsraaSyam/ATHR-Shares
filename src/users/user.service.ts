@@ -157,4 +157,8 @@ export class UsersService {
         return new UserProfileResponse(updatedUser);
     }
 
+    async findUserById(id: string) {
+        return this.usersRepository.findOne({ where: { id } });
+    }
+
 }

@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn
 import { UserEntity } from "src/users/user.entity";
 import { InstallmentType, PaymentTypes, PaymentMethods, PaymentStatus } from "../payment.enum";
 import { PriceDetailsEntity } from "./price-details.entity";
-import { InvestmentPaymentDetailsEntity } from "src/investment/investment-details.entity";
+import { InvestmentPaymentDetailsEntity } from "src/investment/entities/investment-details.entity";
 
 @Entity('payment')
 export class PaymentEntity {
@@ -12,7 +12,7 @@ export class PaymentEntity {
     @Column({nullable: true})
     realty_id: number;
 
-    @Column()
+    @Column({nullable: true})
     payment_type: PaymentTypes;
 
     @Column({ nullable: true })
@@ -21,10 +21,10 @@ export class PaymentEntity {
     @Column({ nullable: true })
     installment_type: InstallmentType;
 
-    @Column()
+    @Column({ nullable: true })
     payment_method: PaymentMethods;
 
-    @Column()
+    @Column({ nullable: true })
     payment_image: string;
 
     @OneToOne(() => PriceDetailsEntity, { cascade: true, eager: true })
@@ -47,6 +47,10 @@ export class PaymentEntity {
     @Column({ type: 'timestamp', nullable: true })
     next_payment_date: Date;
 
-    @OneToOne(() => InvestmentPaymentDetailsEntity, (investmentPaymentDetails) => investmentPaymentDetails.payment)
+    @OneToOne(() => InvestmentPaymentDetailsEntity, (investmentPaymentDetails) => investmentPaymentDetails.payment, {
+        eager: true,
+        cascade: ['insert', 'update'],
+    })
+    @JoinColumn()
     investment_payment_details: InvestmentPaymentDetailsEntity;
 }

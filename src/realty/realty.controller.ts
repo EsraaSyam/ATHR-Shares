@@ -9,6 +9,7 @@ import { fileUploadOptions } from 'src/common/utils/file-upload.util';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/users/user.enum';
+import { RealtyResponse } from './responses/realty.response';
 
 @Controller('realty')
 @UseGuards(RolesGuard)
@@ -50,20 +51,26 @@ export class RealtyController {
             const backgroundImageFile = files[0];
             const realtyImages = files.slice(1);
 
-            const realtyImageUrls = realtyImages.map(file => `https://athrshares.com/uploads/realty_images/${file.filename}`);
-            const backgroundImageUrl = backgroundImageFile
-                ? `https://athrshares.com/uploads/realty_images/${backgroundImageFile.filename}`
+            let realtyImageUrls = realtyImages.map(file => `/uploads/realty_images/${file.filename}`);
+            let backgroundImageUrl = backgroundImageFile
+                ? `/uploads/realty_images/${backgroundImageFile.filename}`
                 : null;
 
 
             const allImages = [backgroundImageFile, ...realtyImages];
 
+            realtyImageUrls = realtyImages.map(file => `${process.env.SERVER_URL}/uploads/realty_images/${file.filename}`);
+
             const realty = await this.realtyService.createRealty(createRealtyRequest, allImages, backgroundImageUrl);
+
+            backgroundImageUrl = backgroundImageFile ? `${process.env.SERVER_URL}/uploads/background_images/${backgroundImageFile.filename}` : null;
+
+            const data = new RealtyResponse(realty);
 
             return res.status(201).json({
                 message: 'Realty created successfully',
                 data: {
-                    ...realty,
+                    ...data,
                     images: realtyImageUrls,
                     background_image: backgroundImageUrl,
                 },

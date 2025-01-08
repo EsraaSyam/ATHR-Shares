@@ -24,7 +24,8 @@ import { TokenEntity } from './auth/token.entity';
 import { AuthMiddleware } from './auth/middleware/auth.middleware';
 import { JwtModule } from '@nestjs/jwt';
 import { InvestmentModule } from './investment/investment.module';
-import { InvestmentPaymentDetailsEntity } from './investment/investment-details.entity';
+import { InvestmentPaymentDetailsEntity } from './investment/entities/investment-details.entity';
+import { PaymentForInvestmentEntity } from './investment/entities/payment-investment.entity';
 
 @Module({
   imports: [
@@ -47,7 +48,7 @@ import { InvestmentPaymentDetailsEntity } from './investment/investment-details.
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity, RealtyImagesEntity, RealtyBackgroundEntity,
-          PriceDetailsEntity, PaymentEntity, TokenEntity,InvestmentPaymentDetailsEntity
+          PriceDetailsEntity, PaymentEntity, TokenEntity,InvestmentPaymentDetailsEntity, PaymentForInvestmentEntity
         ],
         synchronize: true,
       }),

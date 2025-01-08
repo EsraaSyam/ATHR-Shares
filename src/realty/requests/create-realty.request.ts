@@ -27,10 +27,10 @@ export class CreateRealtyRequest {
   down_payment?: number;
 
   @IsOptional()
-  is_avaliable: boolean = true;
+  is_avaliable: boolean;
 
   @IsOptional()
-  is_active: boolean = true;
+  is_active: boolean;
 
   @IsNotEmpty()
   details: CreateRealtyDetailsRequest;

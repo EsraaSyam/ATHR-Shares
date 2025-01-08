@@ -37,4 +37,7 @@ export class RegisterRequest {
 
     @IsOptional()
     is_completed?: boolean = false;
+
+    @IsOptional()
+    profile_photo?: string;
 }

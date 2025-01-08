@@ -15,7 +15,6 @@ export class HomeService {
         private readonly authService: AuthService,
     ) { }
 
-
     async getBannerImages() {
         return await this.bannersRepository.find({ where: { is_active: true } });
     }
@@ -30,23 +29,23 @@ export class HomeService {
 
     async uploadPassport(user: any, imageUrl: string) {
         if (user.passport_photo !== null || user.id_photo_back !== null) {
-            throw new TokenNotValid('User already completed profile');
+            throw new TokenNotValid('تم إكمال الملف الشخصي بالفعل');
         }
 
         user.passport_photo = imageUrl;
-        user.is_completed_profile = true;
+        user.is_completed = true;
 
         return await this.usersService.updateById(user.id, user);
     }
 
-    async uploadIdPhotos(user: any, image_url: string[]){
+    async uploadIdPhotos(user: any, image_url: string[]) {
         if (user.passport_photo !== null || user.id_photo_back !== null) {
-            throw new TokenNotValid('User already completed profile');
+            throw new TokenNotValid('تم إكمال الملف الشخصي بالفعل');
         }
 
         user.id_photo_front = image_url[0];
         user.id_photo_back = image_url[1];
-        user.is_completed_profile = true;
+        user.is_completed = true;
 
         return await this.usersService.updateById(user.id, user);
     }
@@ -54,5 +53,5 @@ export class HomeService {
     async deleteBanner(id: number) {
         return await this.bannersRepository.delete(id);
     }
-
 }
+

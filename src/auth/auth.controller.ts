@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Res, UnauthorizedException, UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UnauthorizedException, UploadedFiles, UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginRequest } from './requests/login.request';
 import { RegisterRequest } from './requests/register.request';
@@ -9,10 +9,12 @@ import { ForgetPasswordRequest } from './requests/forgetPassword.request';
 import { CheakCodeRequest } from './requests/cheakCode.request';
 import { ResetPasswordRequest } from './requests/resetPassword.request';
 import { Response } from 'express';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { AnyFilesInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/users/user.enum';
 import { RolesGuard } from 'src/common/guards/roles.guard';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('auth')
 @UseGuards(RolesGuard)
@@ -50,8 +52,23 @@ export class AuthController {
 
 
     @Post('/register')
-    @UseInterceptors(AnyFilesInterceptor())
-    async register(@Body() registerRequest: RegisterRequest, @Res() res) {
+    @UseInterceptors(
+            FilesInterceptor('profile_photo', 1, {
+                storage: diskStorage({
+                    destination: './uploads/profile_images',
+                    filename: (req, file, callback) => {
+                        const uniqueName = `${Date.now()}${extname(file.originalname)}`;
+                        callback(null, uniqueName);
+                    },
+                }),
+            }),
+        )
+    async register(@Body() registerRequest: RegisterRequest,@UploadedFiles() file: Express.Multer.File[],  @Res() res) {
+        if (file.length === 0) {
+            registerRequest.profile_photo = `${process.env.LOCAL_URL}/uploads/defualt_images/ATHR.jpg`;
+        } else {
+            registerRequest.profile_photo = `${process.env.LOCAL_URL}/uploads/profile_images/${file[0].filename}`;
+        }
         const user = await this.authService.registerUser(registerRequest);
 
         if (!user) {
