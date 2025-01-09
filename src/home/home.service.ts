@@ -5,6 +5,7 @@ import { UsersService } from 'src/users/user.service';
 import { BannerEntity } from './banner.entity';
 import { Repository } from 'typeorm';
 import { TokenNotValid } from 'src/exceptions/token-not-valid.exception';
+import { UserEntity } from 'src/users/user.entity';
 
 @Injectable()
 export class HomeService {
@@ -13,10 +14,20 @@ export class HomeService {
         private bannersRepository: Repository<BannerEntity>,
         private readonly usersService: UsersService,
         private readonly authService: AuthService,
+        @InjectRepository(UserEntity)
+        private userRepository: Repository<UserEntity>,
     ) { }
 
     async getBannerImages() {
-        return await this.bannersRepository.find({ where: { is_active: true } });
+        let banners =  await this.bannersRepository.find({ where: { is_active: true } });
+
+        if (!banners || banners.length === 0) {
+            throw new Error('لا توجد بنرات');
+        }
+
+        banners.forEach(banner => {
+            banner.image_url = `${process.env.APP_URL}/${banner.image_url}`;
+        })
     }
 
     async saveBannerImageUrl(imageUrl: string, description: string) {
@@ -27,27 +38,29 @@ export class HomeService {
         await this.bannersRepository.save(banner);
     }
 
-    async uploadPassport(user: any, imageUrl: string) {
-        if (user.passport_photo !== null || user.id_photo_back !== null) {
-            throw new TokenNotValid('تم إكمال الملف الشخصي بالفعل');
-        }
+    async uploadPassport(id: string, imageUrl: string) {
+        const userData = await this.usersService.findByIdWithout(Number(id));
+        // if (user.passport_photo !== null || user.id_photo_back !== null) {
+        //     throw new TokenNotValid('تم إكمال الملف الشخصي بالفعل');
+        // }
 
-        user.passport_photo = imageUrl;
-        user.is_completed = true;
+        userData.passport_photo = imageUrl;
+        userData.is_completed = true;
 
-        return await this.usersService.updateById(user.id, user);
+        return await this.usersService.updateById(Number(userData.id), userData);
     }
 
-    async uploadIdPhotos(user: any, image_url: string[]) {
-        if (user.passport_photo !== null || user.id_photo_back !== null) {
-            throw new TokenNotValid('تم إكمال الملف الشخصي بالفعل');
-        }
+    async uploadIdPhotos(id: string, image_url: string[]) {
+        const userData = await this.usersService.findByIdWithout(Number(id));
+        // if (user.passport_photo !== null || user.id_photo_back !== null) {
+        //     throw new TokenNotValid('تم إكمال الملف الشخصي بالفعل');
+        // }
 
-        user.id_photo_front = image_url[0];
-        user.id_photo_back = image_url[1];
-        user.is_completed = true;
+        userData.id_photo_front = image_url[0];
+        userData.id_photo_back = image_url[1];
+        userData.is_completed = true;
 
-        return await this.usersService.updateById(user.id, user);
+        return await this.usersService.updateById(Number(userData.id), userData);
     }
 
     async deleteBanner(id: number) {

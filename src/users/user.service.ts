@@ -51,6 +51,10 @@ export class UsersService {
             throw new BadRequestException('At least one field is required to update user');
         }
 
+        if (!id) { 
+            throw new BadRequestException('User id is required');
+        }
+
         const [user, conflictingUsers] = await Promise.all([
             this.usersRepository.findOne({ where: { id: id.toString() } }),
             this.usersRepository.find({
@@ -91,6 +95,10 @@ export class UsersService {
 
     async findById(id: number) {
         return this.usersRepository.findOne({ where: { id: id.toString() }, relations: ['payments'] });
+    }
+
+    async findByIdWithout(id: number) {
+        return this.usersRepository.findOne({ where: { id: id.toString() } });
     }
 
     async softDeleteById(id: number) {

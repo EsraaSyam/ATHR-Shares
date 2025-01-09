@@ -47,7 +47,7 @@ export class UserEntity {
   @Column({ nullable: true })
   is_verified: boolean = false;
 
-  @OneToMany(() => PaymentEntity, (payment) => payment.user) 
+  @OneToMany(() => PaymentEntity, (payment) => payment.user, { eager: false }) 
   payments: PaymentEntity[];
 
   @OneToMany(() => TokenEntity, token => token.user)

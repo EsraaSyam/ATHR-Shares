@@ -37,7 +37,7 @@ export class HomeController {
             return res.status(400).json({ message: 'لم يتم رفع أي ملف' });
         }
 
-        const fileUrl = `https://athrshares.com/uploads/home_baner/${file.filename}`;
+        const fileUrl = `/uploads/home_baner/${file.filename}`;
         await this.homeService.saveBannerImageUrl(fileUrl, body.description);
 
         return res.status(200).json({ message: 'تم رفع الملف وحفظ الرابط بنجاح!', fileUrl });
@@ -53,52 +53,7 @@ export class HomeController {
         });
     }
 
-    @Post('/upload-passport')
-    @UseGuards(RolesGuard)
-    @Roles(Role.USER)
-    @UseInterceptors(
-        FilesInterceptor('images', 1, {
-            storage: diskStorage({
-                destination: './uploads/passport_images',
-                filename: (req, file, callback) => {
-                    const uniqueName = `${Date.now()}${extname(file.originalname)}`;
-                    callback(null, uniqueName);
-                },
-            }),
-        }),
-    )
-    async uploadPassportImage(
-        @Req() req,
-        @UploadedFiles() file: Express.Multer.File, 
-        @Res() res: Response,
-    ) {
-        const user_id = req.user.sub;
-
-        const user = await this.UsersService.findUserById(user_id);
-        console.log(user);
-
-        if (!user_id) {
-            throw new UnauthorizedException('الرمز المميز غير صالح');
-        }
-
-        if (!file) {
-            return res.status(400).json({
-                message: 'يرجى رفع الصور الأمامية والخلفية',
-            });
-        }
-
-        let fileUrls = `/uploads/passport_images/${file.filename}`;
-        await this.homeService.uploadPassport(user, fileUrls);
-
-        fileUrls = `${process.env.SERVER_URL}/uploads/passport_images/${file.filename}`;
-
-        return res.status(200).json({
-            message: 'تم التأكيد من صحة الهوية',
-            fileUrls,
-        });
-    }
-
-    @Post('/upload-id-images')
+    @Post('/upload')
     @UseInterceptors(
         FilesInterceptor('images', 2, {
             storage: diskStorage({
@@ -110,20 +65,31 @@ export class HomeController {
             }),
         }),
     )
+    @UseGuards(RolesGuard)
+    @Roles(Role.USER)
     async uploadIdImages(
+        @Body() body,
         @Req() req,
         @UploadedFiles() files: Express.Multer.File[], 
         @Res() res: Response,
     ) {
         const user = req.user;
 
+        if (!body.multi) {
+            return res.status(400).json({
+                message: 'يرجي تحديد نوع تأكيد الهويه',
+            });
+        }
+
+        const type = JSON.parse(body.multi);
+
         if (!user) {
             throw new UnauthorizedException('الرمز المميز غير صالح');
         }
 
-        if (!files || files.length !== 2) {
+        if(!files) {
             return res.status(400).json({
-                message: 'يرجى رفع الصور الأمامية والخلفية',
+                message: 'يرجي رفع صوره تأكيد الهويه',
             });
         }
 
@@ -131,7 +97,15 @@ export class HomeController {
             (file) => `/uploads/id_images/${file.filename}`,
         );
 
-        await this.homeService.uploadIdPhotos(user, fileUrls);
+        if (files.length == 2 && type) {
+            await this.homeService.uploadIdPhotos(user.sub, fileUrls);
+        } else if (files.length == 1 && !type) {
+            await this.homeService.uploadPassport(user.sub, fileUrls[0]);
+        } else {
+            return res.status(400).json({
+                message: 'يوجد خطأ في رفع الصور',
+            });
+        }
 
         fileUrls = files.map(
             (file) => `${process.env.SERVER_URL}/uploads/id_images/${file.filename}`,

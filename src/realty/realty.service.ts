@@ -101,7 +101,7 @@ export class RealtyService {
     }
 
     async getHomeAvaliableRealty() {
-        const realtys = await this.realtysRepository.find({ where: { is_avaliable: true, is_active: true }, relations: ['details', 'investmentDetails', 'images'] });
+        const realtys = await this.realtysRepository.find({ where: { is_avaliable: true }, relations: ['details', 'investmentDetails', 'images'] });
 
         if (!realtys || realtys.length === 0) {
             throw new NotFoundException('لا توجد عقارات متاحة');
@@ -111,7 +111,7 @@ export class RealtyService {
             title: realty.title,
             owner_name: realty.owner_name,
             down_payment: realty.down_payment,
-            background_image: realty.images[0].image_url,
+            background_image: `${process.env.SERVER_URL}/${realty.images[0].image_url}`,
            
         }));
     }
