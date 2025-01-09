@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Res, UnauthorizedException, UploadedFiles, UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Post, Req, Res, UnauthorizedException, UploadedFiles, UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginRequest } from './requests/login.request';
 import { RegisterRequest } from './requests/register.request';
@@ -15,6 +15,8 @@ import { Role } from 'src/users/user.enum';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { UsersService } from 'src/users/user.service';
+import { ReconnectStrategyError } from 'redis';
 
 @Controller('auth')
 @UseGuards(RolesGuard)
@@ -22,6 +24,7 @@ import { extname } from 'path';
 export class AuthController {
     constructor(
         private readonly authService: AuthService,
+        private readonly userService: UsersService,
     ) { }
 
     @Post('login')
@@ -53,18 +56,18 @@ export class AuthController {
 
     @Post('/register')
     @UseInterceptors(
-            FilesInterceptor('profile_photo', 1, {
-                storage: diskStorage({
-                    destination: './uploads/profile_images',
-                    filename: (req, file, callback) => {
-                        const uniqueName = `${Date.now()}${extname(file.originalname)}`;
-                        callback(null, uniqueName);
-                    },
-                }),
+        FilesInterceptor('profile_photo', 1, {
+            storage: diskStorage({
+                destination: './uploads/profile_images',
+                filename: (req, file, callback) => {
+                    const uniqueName = `${Date.now()}${extname(file.originalname)}`;
+                    callback(null, uniqueName);
+                },
             }),
-        )
-    async register(@Body() registerRequest: RegisterRequest,@UploadedFiles() file: Express.Multer.File[],  @Res() res) {
-        if (file.length === 0) {
+        }),
+    )
+    async register(@Body() registerRequest: RegisterRequest, @UploadedFiles() file: Express.Multer.File[], @Res() res) {
+        if (!file || file.length === 0) {
             registerRequest.profile_photo = `${process.env.LOCAL_URL}/uploads/defualt_images/ATHR.jpg`;
         } else {
             registerRequest.profile_photo = `${process.env.LOCAL_URL}/uploads/profile_images/${file[0].filename}`;
@@ -153,7 +156,7 @@ export class AuthController {
     @Post('/reset-password')
     @Roles(Role.USER)
     @UseInterceptors(AnyFilesInterceptor())
-    async resetPassword(@Body() resetPasswordRequest: ResetPasswordRequest, @Req() req ,@Res() res) {
+    async resetPassword(@Body() resetPasswordRequest: ResetPasswordRequest, @Req() req, @Res() res) {
         const done = await this.authService.resetPassword(resetPasswordRequest.email, resetPasswordRequest.newPassword, resetPasswordRequest.confirmPassword);
 
         if (!done) {
@@ -180,7 +183,7 @@ export class AuthController {
         }
 
         const user = await this.authService.getUserByToken(token);
-        
+
         const done = await this.authService.logout(user.id);
 
         if (!done) {
@@ -197,7 +200,7 @@ export class AuthController {
     async verifyPhoneNumber(@Body('uid') uid: string, @Res() res: Response) {
         try {
             const user = await this.authService.checkIfUserExists(uid);
-    
+
             return res.status(200).json({
                 message: 'تم التحقق من رقم الهاتف بنجاح',
                 data: user,
@@ -208,7 +211,47 @@ export class AuthController {
             });
         }
     }
-    
+
+    @Post('update-fcm-token')
+    @UseInterceptors(AnyFilesInterceptor())
+    async updateFcmToken(@Body() body: { fcmToken: string }, @Req() req , @Res() res: Response) {
+        const token = req.headers['authorization'];
+
+        if (!token) {
+            throw new UnauthorizedException('توكن غير موجود');
+        }
+
+        const user = await this.authService.getUserByToken(token);
+
+        await this.authService.updateFcmToken(user.id, body.fcmToken);
+
+        return res.status(200).json({ message: 'تم تحديث التوكن بنجاح' });
+    }
+
+    @Post('send')
+    async sendNotification(@Body() body: { title: string; message: string }, @Req() req , @Res() res: Response) {
+        const token = req.headers['authorization'];
+
+        if (!token) {
+            throw new UnauthorizedException('توكن غير موجود');
+        }
+
+        if (!body.title ||!body.message) {
+            throw new BadRequestException('الرجاء ادخال العنوان والرسالة');
+        }
+
+        const user = await this.authService.getUserByToken(token);
+
+
+        const { title, message } = body;
+
+        if (!user || !user.fcm_token) {
+            throw new UnauthorizedException('لا يوجد مستخدم');
+        }
+
+        return this.authService.sendNotification(user.fcm_token, title, message);
+    }
+
 }
 
 

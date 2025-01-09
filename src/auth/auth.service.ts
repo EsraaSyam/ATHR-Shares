@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, UseFilters } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UnauthorizedException, UseFilters } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/user.service';
 import { MailerService } from 'src/mailer/mailer.service';
@@ -21,6 +21,7 @@ export class AuthService {
         private readonly usersService: UsersService,
         private readonly mailerService: MailerService,
         private readonly jwtService: JwtService,
+        @Inject('FIREBASE_ADMIN') private firebaseAdmin: admin.app.App,
         @InjectRepository(TokenEntity)
         private tokenRepository: Repository<TokenEntity>,
     ) { }
@@ -48,7 +49,7 @@ export class AuthService {
 
         token.accessToken = accessToken;
 
-        token.user = user; 
+        token.user = user;
 
         await this.tokenRepository.save(token);
 
@@ -168,25 +169,25 @@ export class AuthService {
 
     async getUserByToken(token: string) {
         const decoded: any = this.jwtService.decode(token);
-        
+
         if (!decoded || !decoded.email) {
             throw new UnauthorizedException('Invalid token');
         }
-    
+
         const user = await this.usersService.findByEmail(decoded.email);
-    
+
         if (!user) {
             throw new UnauthorizedException('User not found');
         }
-    
+
         if (!user.tokens || user.tokens.length === 0) {
             throw new UnauthorizedException('Your session has expired');
         }
-    
+
         return user;
     }
-    
-    
+
+
 
     async findByPhoneNumber(phone_number: string) {
         return this.usersService.findByPhoneNumber(phone_number);
@@ -195,14 +196,14 @@ export class AuthService {
     async checkIfUserExists(uid: string) {
         const user = await admin.auth().getUser(uid);
 
-        if(!user) {
+        if (!user) {
             throw new UnauthorizedException('User does not exist');
         }
 
         const phone_number = user.phoneNumber;
         const userExist = await this.usersService.findByPhoneNumber(phone_number);
 
-        if(!userExist) {
+        if (!userExist) {
             throw new UnauthorizedException('User does not exist');
         }
 
@@ -212,4 +213,34 @@ export class AuthService {
 
         return user;
     }
+
+    async updateFcmToken(user_id: string, fcm_token: string) {
+        const user = await this.usersService.findById(Number(user_id));
+
+        if (!user) {
+            throw new NotFoundException('اليوزر غير موجود');
+        }
+
+        user.fcm_token = fcm_token;
+
+        await this.usersService.updateById(Number(user_id), user);
+
+        return user;
+    }
+
+    async sendNotification(fcmToken: string, title: string, body: string, data?: any) {
+        const message = {
+          notification: { title, body },
+          token: fcmToken,
+          data: data || {}, 
+        };
+    
+        try {
+          const response = await this.firebaseAdmin.messaging().send(message);
+
+          return response;
+        } catch (error) {
+            throw new UnauthorizedException('حدث خطأ أثناء إرسال الإشعار');
+        }
+      }
 }

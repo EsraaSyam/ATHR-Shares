@@ -22,10 +22,15 @@ const cleanedServiceAccount = {
     {
       provide: 'FIREBASE_ADMIN',
       useFactory: () => {
-        return admin.initializeApp({
-          credential: admin.credential.cert(cleanedServiceAccount as admin.ServiceAccount), 
-        });
-      },
+        try {
+          return admin.initializeApp({
+            credential: admin.credential.cert(cleanedServiceAccount as admin.ServiceAccount),
+          });
+        } catch (error) {
+          console.error('Failed to initialize Firebase Admin SDK:', error);
+          throw error;
+        }
+      }
     },
     FirebaseService,
   ],

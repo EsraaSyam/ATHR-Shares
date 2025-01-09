@@ -7,6 +7,7 @@ import { UsersService } from 'src/users/user.service';
 import { MailerService } from 'src/mailer/mailer.service';
 import { TokenEntity } from './token.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { FirebaseModule } from 'src/firebase/firebase.module';
 
 @Module({
   imports:[
@@ -15,6 +16,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     }),
     forwardRef(() => UsersModule),
     TypeOrmModule.forFeature([TokenEntity]),
+    FirebaseModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, MailerService],

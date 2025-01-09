@@ -93,7 +93,7 @@ export class HomeController {
         fileUrls = `${process.env.SERVER_URL}/uploads/passport_images/${file.filename}`;
 
         return res.status(200).json({
-            message: 'تم رفع صوره جواز السفر الشخصي بنجاح!',
+            message: 'تم التأكيد من صحة الهوية',
             fileUrls,
         });
     }
@@ -138,7 +138,7 @@ export class HomeController {
         );
 
         return res.status(200).json({
-            message: 'تم رفع صوره البطاقه الشخصيه بنجاح!',
+            message:  'تم التأكيد من صحة الهوية',
             fileUrls,
         });
     }

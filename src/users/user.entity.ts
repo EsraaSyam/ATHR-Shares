@@ -52,4 +52,7 @@ export class UserEntity {
 
   @OneToMany(() => TokenEntity, token => token.user)
   tokens: TokenEntity[];
+
+  @Column({ nullable: true })
+  fcm_token: string;
 }

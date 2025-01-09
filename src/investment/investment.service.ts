@@ -194,7 +194,6 @@ export class InvestmentService {
 
             const neww =  await this.investmentPaymentDetailsRepository.save(investmentPaymentDetails);
 
-            // console.log("neww", neww);
         }
     
     }
@@ -213,20 +212,22 @@ export class InvestmentService {
             ],
         });
 
+        // console.log("user", user);
+
         const userPayment = user.payments.find(payment => payment.realty_id === realty.id);
 
-        console.log("userPayment", userPayment);
+        // console.log("userPayment", userPayment);
 
         const investmentPaymentDetails = userPayment.investment_payment_details;
 
-        console.log("investmentPaymentDetails", investmentPaymentDetails);
+        // console.log("investmentPaymentDetails", investmentPaymentDetails);
 
         // console.log("user", user);
         // console.log("userPayment", userPayment);
 
         const getInvestmentPaymentDetails = await this.getInvestmentPaymentDetailsForNetShare(body);
 
-        console.log("getInvestmentPaymentDetails", getInvestmentPaymentDetails);
+        // console.log("getInvestmentPaymentDetails", getInvestmentPaymentDetails);
 
         const paymentDetails = new PaymentForInvestmentEntity();
 
@@ -234,50 +235,52 @@ export class InvestmentService {
 
         paymentDetails.payment_image = body.payment_image;
 
-        console.log("paymentDetails", paymentDetails);
+        // console.log("paymentDetails", paymentDetails);
 
-        // if (!investmentPaymentDetails) {
-        //     const newInvestmentPaymentDetails = new InvestmentPaymentDetailsEntity();
+        if (!investmentPaymentDetails) {
+            const newInvestmentPaymentDetails = new InvestmentPaymentDetailsEntity();
 
-        //     newInvestmentPaymentDetails.unit_price = getInvestmentPaymentDetails.unit_price;
+            newInvestmentPaymentDetails.unit_price = getInvestmentPaymentDetails.unit_price;
 
-        //     // newInvestmentPaymentDetails.down_payment = getInvestmentPaymentDetails.down_payment;
+            newInvestmentPaymentDetails.net_share_price = getInvestmentPaymentDetails.net_share_price;
 
-        //     newInvestmentPaymentDetails.paid_installment = 0;
+            newInvestmentPaymentDetails.net_share_count = getInvestmentPaymentDetails.net_share_count;
 
-        //     newInvestmentPaymentDetails.next_installment_price = getInvestmentPaymentDetails.next_installment_price;
+            newInvestmentPaymentDetails.paid_installment = 0;
 
-        //     newInvestmentPaymentDetails.next_installment_date = new Date(getInvestmentPaymentDetails.next_installment_date);
+            newInvestmentPaymentDetails.next_installment_price = getInvestmentPaymentDetails.next_installment_price;
 
-        //     newInvestmentPaymentDetails.total_price = getInvestmentPaymentDetails.total_price;
+            newInvestmentPaymentDetails.next_installment_date = new Date(getInvestmentPaymentDetails.next_installment_date);
 
-        //     newInvestmentPaymentDetails.payments = [paymentDetails];
+            newInvestmentPaymentDetails.total_price = getInvestmentPaymentDetails.total_price;
 
-        //     userPayment.investment_payment_details = newInvestmentPaymentDetails;
+            newInvestmentPaymentDetails.payments = [paymentDetails];
 
-        //     const user3 = await this.paymentsRepository.save(userPayment);
+            userPayment.investment_payment_details = newInvestmentPaymentDetails;
 
-        //     user.payments.find(payment => payment.realty_id === realty.id).investment_payment_details = user3.investment_payment_details;
+            const user3 = await this.paymentsRepository.save(userPayment);
 
-        //     user.payments.find(payment => payment.realty_id === realty.id).investment_payment_details.payments = user3.investment_payment_details.payments;
+            user.payments.find(payment => payment.realty_id === realty.id).investment_payment_details = user3.investment_payment_details;
 
-        //     await this.usersRepository.save(user);
-        // } else {
+            user.payments.find(payment => payment.realty_id === realty.id).investment_payment_details.payments = user3.investment_payment_details.payments;
 
-        //     investmentPaymentDetails.paid_installment += investmentPaymentDetails.total_price;
+            await this.usersRepository.save(user);
+        } else {
 
-        //     investmentPaymentDetails.payments.push(paymentDetails);
+            investmentPaymentDetails.paid_installment += investmentPaymentDetails.total_price;
 
-        //     const nextInstallmentDate = new Date(investmentPaymentDetails.next_installment_date); 
+            investmentPaymentDetails.payments.push(paymentDetails);
 
-        //     nextInstallmentDate.setDate(nextInstallmentDate.getDate() + 30);
+            const nextInstallmentDate = new Date(investmentPaymentDetails.next_installment_date); 
 
-        //     investmentPaymentDetails.next_installment_date = nextInstallmentDate;
+            nextInstallmentDate.setDate(nextInstallmentDate.getDate() + 30);
 
-        //     const neww =  await this.investmentPaymentDetailsRepository.save(investmentPaymentDetails);
+            investmentPaymentDetails.next_installment_date = nextInstallmentDate;
 
-        //     // console.log("neww", neww);
-        // }
+            const neww =  await this.investmentPaymentDetailsRepository.save(investmentPaymentDetails);
+
+            // console.log("neww", neww);
+        }
     
     }
 
