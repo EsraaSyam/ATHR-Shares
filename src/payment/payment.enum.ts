@@ -1,8 +1,8 @@
 
 export enum InstallmentType {
-    Month_12 = 'month_12',
-    Month_18 = 'month_18',
-    Month_24 = 'month_24',
+    Month_12 = '12 month',
+    Month_18 = '18 month',
+    Month_24 = '24 month',
 }
 
 export enum PaymentTypes {
@@ -11,9 +11,9 @@ export enum PaymentTypes {
 }
 
 export enum PaymentMethods {
-    VODAFONE_CASH = 'vodafone_cash',
-    INSTA_PAY = "insta_pay",
-    BANK_TRANSFER = 'bank_transfer',
+    VODAFONE_CASH = 'vodafone cash',
+    INSTA_PAY = "insta pay",
+    BANK_TRANSFER = 'bank transfer',
 }
 
 export enum PaymentStatus {

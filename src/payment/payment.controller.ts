@@ -15,23 +15,29 @@ import { diskStorage } from 'multer';
 @UseGuards(RolesGuard)
 @Controller('payment')
 export class PaymentController {
-    constructor( 
+    constructor(
         private readonly paymentService: PaymentService,
         private readonly authService: AuthService,
-        
+
     ) { }
 
     @Get('price-details')
     @Roles(Role.GUEST, Role.USER)
     @UseInterceptors(AnyFilesInterceptor())
-    async getPriceDetails(@Body() getPaymrntDetailsRequest:GetPaymentDetailsRequest,@Req() req, @Res() res: Response){
+    async getPriceDetails(@Body() getPaymrntDetailsRequest: GetPaymentDetailsRequest, @Req() req, @Res() res: Response) {
         const user = req.user;
-        console.log(user)
-        const paymentDetails = await this.paymentService.getPriceDetails(getPaymrntDetailsRequest);
-        return res.status(200).json({
-            message: 'تمت بنجاح',
-            data: paymentDetails,
-        });
+        try {
+            const paymentDetails = await this.paymentService.getPriceDetails(getPaymrntDetailsRequest);
+            return res.status(200).json({
+                message: 'تمت بنجاح',
+                data: paymentDetails,
+            });
+        } catch (error) {
+            return res.status(400).json({
+                message: 'حدث خطأ ما',
+                error: error.message,
+            });
+        }
     }
 
     @Post('create-payment')
@@ -45,25 +51,32 @@ export class PaymentController {
             },
         }),
     }))
-    async createPayment(@Body() createPaymentRequest :CreatePaymentRequest, @Req() req,  @UploadedFile() file: Express.Multer.File, @Res() res: Response){
-        const user = req.user; 
+    async createPayment(@Body() createPaymentRequest: CreatePaymentRequest, @Req() req, @UploadedFile() file: Express.Multer.File, @Res() res: Response) {
+        try {
+            const user = req.user;
 
-        if (!user) {
-            return res.status(401).json({
-                message: 'المستخدم غير موجود',
+            if (!user) {
+                return res.status(401).json({
+                    message: 'المستخدم غير موجود',
+                });
+            }
+
+            createPaymentRequest.user_id = user.sub;
+
+            createPaymentRequest.payment_image = `https://athrshares.com/uploads/payment_images/${file.filename}`;
+
+            const payment = await this.paymentService.createPayment(createPaymentRequest);
+
+            return res.status(201).json({
+                message: 'تمت العملية بنجاح',
+                data: payment,
+            });
+
+        } catch (err) {
+            return res.status(400).json({
+                message: 'حدث خطأ ما',
+                error: err.message,
             });
         }
-
-        createPaymentRequest.user_id = Number(user.sub);
-
-
-        createPaymentRequest.payment_image = `https://athrshares.com/uploads/payment_images/${file.fieldname}`;
-
-        const payment = await this.paymentService.createPayment(createPaymentRequest);
-
-        return res.status(201).json({
-            message: 'Payment created successfully',
-            data: payment,
-        });
     }
 }

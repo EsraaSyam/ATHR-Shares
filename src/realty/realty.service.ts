@@ -9,6 +9,7 @@ import { InvestmentDetailsEntity } from './entities/investment-details.entity';
 import { RealtyImagesEntity } from './entities/realty-images.entity';
 import { RealtyBackgroundEntity } from './entities/realty-background.entity';
 import { title } from 'process';
+import { UpdateRealtyRequest } from './requests/update-realty.request';
 
 @Injectable()
 export class RealtyService {
@@ -24,49 +25,144 @@ export class RealtyService {
     ) { }
 
     async findAll() {
-        return this.realtysRepository.find(
-            {
-                relations: ['details', 'investmentDetails', 'images', 'priceDetails'],
-            }
-        );
+        const realtys =  await this.realtysRepository.find({
+            relations: ['details', 'investmentDetails', 'images', 'priceDetails'],
+            order: { id: 'DESC' }
+        });
+
+        if (!realtys) {
+            throw new NotFoundException('لا توجد عقارات');
+        }
+
+        return realtys;
     }
 
     async findRealtyById(id: number) {
-        const realty = this.realtysRepository.findOne({ where: { id }, relations: ['details', 'investmentDetails', 'images', 'priceDetails'] });
+        const realty = await this.realtysRepository.findOne({ 
+            where: { id, is_active: true }, 
+            relations: ['details', 'investmentDetails', 'images', 'priceDetails'] 
+        });
+
+        console.log(realty);
 
         if (!realty) {
-            throw new NotFoundException(`Realty of id ${id} does not exist`);
+            throw new NotFoundException(`لا يوجد عقار بالرقم ${id}`);
+        }
+    
+        return realty;
+    }
+
+    async findRealtyByIdForInvestment(id: number){
+        const realty = await this.realtysRepository.findOne({ 
+            where: { id, is_active: true, is_avaliable: true }, 
+            relations: ['details', 'investmentDetails'] 
+        });
+
+        if (!realty) {
+            throw new NotFoundException(`لا يوجد عقار متاحه بالرقم ${id}`);
         }
 
         return realty;
     }
+    
 
     async createRealty(createRealtyRequest: CreateRealtyRequest, files: Express.Multer.File[], backgroundImageUrl: string) {
-        const { details, investment_details, images, ...realtyData } = createRealtyRequest;
-    
-        if (Array.isArray(details.features)) {
-            details.features = JSON.stringify(details.features);
-        } else if (typeof details.features === 'string') {
+        let { details, investment_details, images, ...realtyData } = createRealtyRequest;
+
+        if (typeof details === 'string') {
+            details = JSON.parse(details);
+        }
+
+        if (typeof investment_details === 'string') {
+            investment_details = JSON.parse(investment_details);
+        }
+
+        if (typeof details.features === 'string') {
             details.features = JSON.stringify(details.features.split(',').map(item => item.trim()));
         }
-    
+
+
         const realtyDetails = new RealtyDetailsEntity();
         Object.assign(realtyDetails, details);
-    
+
         const realtyInvestmentDetails = new InvestmentDetailsEntity();
         Object.assign(realtyInvestmentDetails, investment_details);
-    
+
+        realtyInvestmentDetails.unit_price = details.price;
+
         const realtyBackground = new RealtyBackgroundEntity();
         if (backgroundImageUrl) {
             realtyBackground.image_url = backgroundImageUrl;
         }
-    
+
         const realty = new RealtyEntity();
         Object.assign(realty, realtyData);
         realty.details = realtyDetails;
         realty.investmentDetails = realtyInvestmentDetails;
-        realty.background_image = realtyBackground; 
-        
+        realty.background_image = realtyBackground;
+        realty.investmentDetails.service_charge = investment_details.service_charge;
+
+        const savedRealty = await this.realtysRepository.save(realty);
+
+        if (files && files.length > 0) {
+            const realtyImages = files.map((file, index) => {
+                const realtyImage = new RealtyImagesEntity();
+                realtyImage.image_url = file.path;
+                realtyImage.description = images ? images[index]?.description : null;
+                realtyImage.realty = savedRealty;
+                return realtyImage;
+            });
+            await this.realtyImagesRepository.save(realtyImages);
+        }
+
+        return savedRealty;
+    }
+    
+
+    async updateRealty(id: number, updateRealtyRequest: UpdateRealtyRequest, files: Express.Multer.File[], backgroundImageUrl?: string) {
+        const realty = await this.realtysRepository.findOne({
+            where: { id },
+            relations: ['details', 'investmentDetails', 'images'],
+        });
+    
+        if (!realty) {
+            throw new NotFoundException(`Realty with id ${id} not found`);
+        }
+    
+        let { details, investment_details, images, ...realtyData } = updateRealtyRequest;
+    
+        details = details ? (typeof details === 'string' ? JSON.parse(details) : details) : realty.details;
+        investment_details = investment_details
+            ? typeof investment_details === 'string'
+                ? JSON.parse(investment_details)
+                : investment_details
+            : realty.investmentDetails;
+    
+        if (details.features && typeof details.features === 'string') {
+            details.features = JSON.stringify(details.features.split(',').map(item => item.trim()));
+        }
+    
+        const parseOrDefault = (value: any, defaultValue: number = 0) => (value === '' || value === undefined ? defaultValue : Number(value));
+    
+        details.price = parseOrDefault(details.price);
+        realtyData.net_quarter = parseOrDefault(realtyData.net_quarter);
+        realtyData.net_return = parseOrDefault(realtyData.net_return);
+        investment_details.service_charge = parseOrDefault(investment_details.service_charge);
+    
+        const realtyDetails = Object.assign(new RealtyDetailsEntity(), realty.details, details);
+        realty.details = realtyDetails;
+    
+        const realtyInvestmentDetails = Object.assign(new InvestmentDetailsEntity(), realty.investmentDetails, investment_details);
+        realtyInvestmentDetails.unit_price = details.price ?? realtyInvestmentDetails.unit_price;
+        realtyInvestmentDetails.service_charge = investment_details.service_charge ?? realtyInvestmentDetails.service_charge;
+        realty.investmentDetails = realtyInvestmentDetails;
+    
+        if (backgroundImageUrl) {
+            realty.background_image.image_url = backgroundImageUrl;
+        }
+    
+        Object.assign(realty, realtyData);
+    
         const savedRealty = await this.realtysRepository.save(realty);
     
         if (files && files.length > 0) {
@@ -82,13 +178,10 @@ export class RealtyService {
     
         return savedRealty;
     }
-
     
-
     
-
-
-
+    
+    
 
     async getAvaliableRealty(): Promise<RealtyResponse[]> {
         const realtys = await this.realtysRepository.find({ where: { is_avaliable: true, is_active: true }, relations: ['details', 'investmentDetails', 'images'] });
@@ -101,7 +194,7 @@ export class RealtyService {
     }
 
     async getHomeAvaliableRealty() {
-        const realtys = await this.realtysRepository.find({ where: { is_avaliable: true }, relations: ['details', 'investmentDetails', 'images'] });
+        const realtys = await this.realtysRepository.find({ where: { is_avaliable: true, is_active: true }, relations: ['details', 'investmentDetails', 'images'] });
 
         if (!realtys || realtys.length === 0) {
             throw new NotFoundException('لا توجد عقارات متاحة');
@@ -110,9 +203,9 @@ export class RealtyService {
         return realtys.map((realty) => ({
             title: realty.title,
             owner_name: realty.owner_name,
-            down_payment: realty.down_payment,
+            down_payment: realty.investmentDetails.down_payment,
             background_image: `${process.env.SERVER_URL}/${realty.images[0].image_url}`,
-           
+
         }));
     }
 
@@ -128,11 +221,14 @@ export class RealtyService {
 
     async deleteRealty(id: number) {
         const realty = await this.realtysRepository.findOne({ where: { id } });
+
         if (!realty) {
             throw new NotFoundException(`العقار ذو المعرف ${id} غير موجود`);
         }
 
-        return await this.realtysRepository.delete(id);
+        realty.is_active = false;
+
+        return await this.realtysRepository.save(realty);
     }
 
 

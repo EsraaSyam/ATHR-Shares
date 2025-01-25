@@ -1,0 +1,251 @@
+{{#> layout}}
+
+<div class="page-body">
+    <div class="container">
+        <h2 class="text-center my-4">Edit Realty</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="editRealtyTitle" class="form-label">Title</label>
+                <input type="text" id="editRealtyTitle" class="form-control" placeholder="Enter title">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="editRealtyOwnerName" class="form-label">Owner Name</label>
+                <input type="text" id="editRealtyOwnerName" class="form-control" placeholder="Enter owner name">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="editRealtyLatitude" class="form-label">Latitude</label>
+                <input type="text" id="editRealtyLatitude" class="form-control" placeholder="Enter latitude">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="editRealtyLongitude" class="form-label">Longitude</label>
+                <input type="text" id="editRealtyLongitude" class="form-control" placeholder="Enter longitude">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="editRealtyRoomCount" class="form-label">Room Count</label>
+                <input type="number" id="editRealtyRoomCount" class="form-control" placeholder="Enter room count">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="editRealtyBathroomCount" class="form-label">Bathroom Count</label>
+                <input type="number" id="editRealtyBathroomCount" class="form-control"
+                    placeholder="Enter bathroom count">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="editRealtyArea" class="form-label">Area (m²)</label>
+                <input type="number" step="0.1" id="editRealtyArea" class="form-control" placeholder="Enter area">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="editRealtyType" class="form-label">Type</label>
+                <input type="text" id="editRealtyType" class="form-control" placeholder="Enter type">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="editRealtyPrice" class="form-label">Price</label>
+                <input type="number" id="editRealtyPrice" class="form-control" placeholder="Enter price">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="editRealtyNetShareCount" class="form-label">Net Share Count</label>
+                <input type="text" id="editRealtyNetShareCount" class="form-control"
+                    placeholder="Enter net share count">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="editInvestmentNetSharePrice" class="form-label">Net Share Price</label>
+                <input type="number" id="editInvestmentNetSharePrice" class="form-control"
+                    placeholder="Enter net share price">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="editInvestmentDownPayment" class="form-label">Down Payment</label>
+                <input type="number" id="editInvestmentDownPayment" class="form-control"
+                    placeholder="Enter down payment">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="editInvestmentServiceCharge" class="form-label">Service Charge</label>
+                <input type="number" id="editInvestmentServiceCharge" class="form-control"
+                    placeholder="Enter service charge">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="editNetQuarter" class="form-label">Net Quarter</label>
+                <input type="number" id="editNetQuarter" class="form-control" placeholder="Enter net quarter">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="editNetReturn" class="form-label">Net Return</label>
+                <input type="number" id="editNetReturn" class="form-control" placeholder="Enter net return">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="editRealtyFeatures" class="form-label">Features</label>
+                <textarea id="editRealtyFeatures" class="form-control"
+                    placeholder="Enter features (comma separated)"></textarea>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="editRealtySaleDate" class="form-label">Sale Date</label>
+                <input type="date" id="editRealtySaleDate" class="form-control">
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <label for="editImages" class="form-label">Upload Images</label>
+                <input type="file" id="editImages" class="form-control" multiple>
+            </div>
+        </div>
+
+        <button type="button" id="saveEditRealtyButton" class="btn btn-primary">Save Changes</button>
+    </div>
+</div>
+
+<script>
+    function showToast(message, type = 'success') {
+        const toastContainer = document.createElement('div');
+        toastContainer.className = `toast-message ${type}`;
+        toastContainer.textContent = message;
+        document.body.appendChild(toastContainer);
+        setTimeout(() => {
+            toastContainer.classList.add('fade-out');
+            setTimeout(() => {
+                toastContainer.remove();
+            }, 500);
+        }, 3000);
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+
+            console.log('id:', id);
+
+            if (!id) {
+                throw new Error('Missing realty ID');
+            }
+
+            // Fetch realty details from the server using the provided ID
+            const response = await fetch(`http://localhost:3000/api/v1/realty/get-realty-by-id/${id}`);
+
+            console.log(response);
+            if (!response.ok) {
+                throw new Error('Failed to fetch realty details');
+            }
+
+            let realty = await response.json();
+
+            realty = realty.data;
+
+            // Log the realty data for debugging
+            console.log('Realty data:', realty);
+
+            // Fill form fields with realty data, with safety checks for missing fields
+            document.getElementById('editRealtyTitle').value = realty.title || '';
+            document.getElementById('editRealtyOwnerName').value = realty.owner_name || '';
+            document.getElementById('editRealtySaleDate').value = realty.sale_date || '';
+            document.getElementById('editRealtyLatitude').value = realty.details ? realty.details.latitude : '';
+            document.getElementById('editRealtyLongitude').value = realty.details ? realty.details.longitude : '';
+
+            // Handle missing fields in realty details
+            document.getElementById('editRealtyBathroomCount').value = realty.details ? realty.details.bathroom_count : '';
+            document.getElementById('editRealtyRoomCount').value = realty.details ? realty.details.room_count : '';
+            document.getElementById('editRealtyArea').value = realty.details ? realty.details.area : '';
+            document.getElementById('editRealtyType').value = realty.details ? realty.details.type : '';
+            document.getElementById('editRealtyPrice').value = realty.details ? realty.details.price : '';
+            document.getElementById('editRealtyFeatures').value = realty.details ? realty.details.features : '';
+            document.getElementById('editRealtyNetShareCount').value = realty.details ? realty.details.net_share_count : '';
+
+            // Handle missing fields in investment details
+            document.getElementById('editInvestmentNetSharePrice').value = realty.investmentDetails ? realty.investmentDetails.net_share_price : '';
+            document.getElementById('editInvestmentDownPayment').value = realty.investmentDetails ? realty.investmentDetails.down_payment : '';
+            document.getElementById('editInvestmentServiceCharge').value = realty.investmentDetails ? realty.investmentDetails.service_charge : '';
+            document.getElementById('editNetQuarter').value = realty.net_quarter || '';
+            document.getElementById('editNetReturn').value = realty.net_return || '';
+
+            document.getElementById('saveEditRealtyButton').addEventListener('click', async function () {
+                const title = document.getElementById('editRealtyTitle').value;
+                const ownerName = document.getElementById('editRealtyOwnerName').value;
+                const netQuarter = document.getElementById('editNetQuarter').value;
+                const netReturn = document.getElementById('editNetReturn').value;
+
+                const details = {
+                    bathroom_count: document.getElementById('editRealtyBathroomCount').value,
+                    room_count: document.getElementById('editRealtyRoomCount').value,
+                    area: document.getElementById('editRealtyArea').value,
+                    type: document.getElementById('editRealtyType').value,
+                    price: document.getElementById('editRealtyPrice').value,
+                    features: document.getElementById('editRealtyFeatures').value,
+                    longitude: document.getElementById('editRealtyLongitude').value,
+                    latitude: document.getElementById('editRealtyLatitude').value,
+                    net_share_count: document.getElementById('editRealtyNetShareCount').value,
+                };
+
+                const investmentDetails = {
+                    net_share_price: document.getElementById('editInvestmentNetSharePrice').value,
+                    down_payment: document.getElementById('editInvestmentDownPayment').value,
+                    service_charge: document.getElementById('editInvestmentServiceCharge').value,
+                };
+
+                const imageInput = document.getElementById('editImages');
+                const formData = new FormData();
+                formData.append('title', title);
+                formData.append('owner_name', ownerName);
+                formData.append('net_quarter', netQuarter);
+                formData.append('net_return', netReturn);
+                formData.append('details', JSON.stringify(details));
+                formData.append('investment_details', JSON.stringify(investmentDetails));
+
+                if (imageInput.files.length > 0) {
+                    for (let i = 0; i < imageInput.files.length; i++) {
+                        formData.append('images', imageInput.files[i]);
+                    }
+                }
+
+                try {
+                    const response = await fetch(`http://localhost:3000/api/v1/realty/update/${id}`, {
+                        method: 'PUT',
+                        body: formData,
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        location.reload();
+                        showToast('Realty updated successfully!');
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                } catch (error) {
+                    console.error('Error updating realty:', error);
+                    alert('Error: Could not update realty.');
+                }
+            });
+
+
+        } catch (error) {
+            console.error('Error fetching realty details:', error);
+            alert('Failed to fetch realty details.');
+        }
+
+    });
+
+</script>
+
+{{/layout}}

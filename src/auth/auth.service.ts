@@ -12,8 +12,9 @@ import { UserAlreadyExist } from 'src/exceptions/user-already-exist.exception';
 import { Role } from 'src/users/user.enum';
 import * as admin from 'firebase-admin';
 import { TokenEntity } from './token.entity';
-import { Repository } from 'typeorm';
+import { Admin, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AdminEntity } from './entities/admin.entity';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,8 @@ export class AuthService {
         @Inject('FIREBASE_ADMIN') private firebaseAdmin: admin.app.App,
         @InjectRepository(TokenEntity)
         private tokenRepository: Repository<TokenEntity>,
+        @InjectRepository(AdminEntity)
+        private adminRepository: Repository<AdminEntity>,
     ) { }
 
     async validateUser(phone_number: string, password: string) {
@@ -35,6 +38,26 @@ export class AuthService {
 
         if (user && isPasswordValid) {
             return user;
+        }
+
+        return null;
+    }
+
+    async findAdminByEmail(email: string) {
+        return this.adminRepository.findOne({ where: { email: email } });
+    }
+
+    async validateAdmin(email: string, password: string) {
+        const admin = await this.findAdminByEmail(email);
+
+        console.log(admin);
+
+        if (!admin) return null;
+
+        const isPasswordValid = await bycrpt.compare(password, admin.password);
+
+        if (admin && isPasswordValid) {
+            return admin;
         }
 
         return null;
@@ -230,17 +253,17 @@ export class AuthService {
 
     async sendNotification(fcmToken: string, title: string, body: string, data?: any) {
         const message = {
-          notification: { title, body },
-          token: fcmToken,
-          data: data || {}, 
+            notification: { title, body },
+            token: fcmToken,
+            data: data || {},
         };
-    
-        try {
-          const response = await this.firebaseAdmin.messaging().send(message);
 
-          return response;
+        try {
+            const response = await this.firebaseAdmin.messaging().send(message);
+
+            return response;
         } catch (error) {
             throw new UnauthorizedException('حدث خطأ أثناء إرسال الإشعار');
         }
-      }
+    }
 }

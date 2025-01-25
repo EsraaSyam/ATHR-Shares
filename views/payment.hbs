@@ -1,0 +1,210 @@
+{{#> layout}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="page-body">
+  <div class="col-sm-12">
+    <div class="card">
+      <div class="card-header">
+        <h5>Payments Data</h5>
+      </div>
+      <div class="table-responsive">
+        <table class="table" id="userTable">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Payment Type</th>
+              <th scope="col">Payment Status</th>
+              <th scope="col">Payment Image</th>
+              <th scope="col">Net Share Count</th>
+              <th scope="col">Installment Type</th>
+              <th scope="col">Realty Id</th>
+              <th scope="col">Investor Name</th>
+              <th scope="col">More Details</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="paginationControls" class="d-flex justify-content-center mt-3"></div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    let currentPage = new URLSearchParams(window.location.search).get('page') || 1;
+    const userTableBody = document.getElementById('userTableBody');
+    const paginationControls = document.getElementById('paginationControls');
+
+    async function fetchUsers(page = 1) {
+      try {
+        currentPage = parseInt(page);
+        const response = await fetch(`http://localhost:3000/api/v1/admin/payments?page=${page}`);
+        if (!response.ok) throw new Error('Failed to fetch payments');
+
+        const data = await response.json();
+        const payment_data = data.data.payments;
+        const numberOfPages = data.data.numberOfPages;
+        const limit = data.data.limit;
+
+        userTableBody.innerHTML = '';
+        let cnt = (page - 1) * limit + 1;
+
+        const paymentPromises = payment_data.map(async (payment) => {
+          try {
+            const response2 = await fetch(`http://localhost:3000/api/v1/admin/users/${payment.user_id}`);
+
+            if (!response2.ok) throw new Error('Failed to fetch user data');
+
+            const userData = await response2.json();
+            console.log(userData);
+            const userName = userData.data.full_name || 'N/A';
+
+            return `
+                        <tr>
+                            <td>${cnt++}</td>
+                            <td>${payment.payment_type}</td>
+                            <td>${payment.payment_status}</td>
+                            <td>${payment.payment_image ? `<a href="${payment.payment_image}" target="_blank" class="btn px-2" style="background-color: #006A4E; color: white;">View Image</a>` : 'N/A'}</td>
+                            <td>${payment.net_share_count ? payment.net_share_count : "All Unit"} ${payment.net_share_count ? "net share" : ""}</td>
+                            <td>${payment.installment_type !== null ? payment.installment_type : "Cash"}</td>
+                            <td><a href="/dashboard/update-realty?id=${payment.realty_id}" class="btn px-2" style="background-color: #006A4E; color: white;">
+                show it</td>
+                            <td>${userName}</td>
+                            <td><a href="/dashboard/payment-more-info?id=${payment.user_id}" class="btn px-4" style="background-color: #006A4E; color: white;">View</button></td>
+                            <td><button class="btn btn-danger px-3" data-id="${payment.id}" onclick="deletePayment(this)">Delete</button></td>
+                        </tr>`;
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+            return '';
+          }
+        });
+
+        const userRows = await Promise.all(paymentPromises);
+        userTableBody.innerHTML = userRows.join('');
+        updatePaginationControls(currentPage, numberOfPages);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    }
+
+    function updatePaginationControls(currentPage, numberOfPages) {
+      paginationControls.innerHTML = '';
+
+      if (currentPage > 1) {
+        const prevButton = document.createElement('button');
+        prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+        prevButton.className = 'btn pagination-btn';
+        prevButton.onclick = () => {
+          currentPage--;
+          updateURL(currentPage);
+          fetchUsers(currentPage);
+        };
+        paginationControls.appendChild(prevButton);
+      }
+
+      for (let i = 1; i <= numberOfPages; i++) {
+        const pageButton = document.createElement('button');
+        pageButton.textContent = i;
+        pageButton.className = `btn pagination-btn ${i === currentPage ? 'active-page' : ''}`;
+        pageButton.onclick = () => {
+          currentPage = i;
+          updateURL(currentPage);
+          fetchUsers(currentPage);
+        };
+        paginationControls.appendChild(pageButton);
+      }
+
+      if (currentPage < numberOfPages) {
+        const nextButton = document.createElement('button');
+        nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+        nextButton.className = 'btn pagination-btn';
+        nextButton.onclick = () => {
+          currentPage++;
+          updateURL(currentPage);
+          fetchUsers(currentPage);
+        };
+        paginationControls.appendChild(nextButton);
+      }
+    }
+
+    function updateURL(page) {
+      const url = new URL(window.location);
+      url.searchParams.set('page', page);
+      window.history.pushState({}, '', url);
+      location.reload();
+    }
+
+    async function deletePayment(button) {
+      const paymentId = button.getAttribute('data-id');
+      console.log("id", paymentId);
+
+      const isConfirmed = await showConfirmToast('Are you sure you want to delete this payment?');
+      if (!isConfirmed) return;
+
+      try {
+        const response = await fetch(`http://localhost:3000/api/v1/admin/payment/${paymentId}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          showToast(errorData.message, 'failure');
+          return;  
+        }
+
+        button.closest('tr').remove();
+        showToast('Payment deleted successfully', 'success');
+
+        currentPage = parseInt(new URLSearchParams(window.location.search).get('page')) || 1;
+        fetchUsers(currentPage);
+      } catch (error) {
+        console.error('Error deleting payment:', error);
+        showToast('An error occurred while deleting the payment', 'failure');
+      }
+    }
+
+    window.deletePayment = deletePayment;
+
+
+
+
+    fetchUsers(currentPage);
+  });
+</script>
+<style>
+  .pagination-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin: 0 5px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    color: #006A4E;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  .pagination-btn:hover {
+    background-color: #006A4E;
+    color: #fff;
+    border-color: #006A4E;
+    transform: scale(1.1);
+  }
+
+  .active-page {
+    background-color: #006A4E !important;
+    color: #fff !important;
+    border-color: #006A4E !important;
+  }
+
+  .pagination-btn i {
+    font-size: 14px;
+  }
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{{/layout}}

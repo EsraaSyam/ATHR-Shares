@@ -29,4 +29,7 @@ export class RealtyDetailsEntity {
 
     @Column()
     latitude: string;
+
+    @Column({nullable: true})
+    net_share_count: number = 0;
 }

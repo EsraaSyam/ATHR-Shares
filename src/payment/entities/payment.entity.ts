@@ -53,4 +53,10 @@ export class PaymentEntity {
     })
     @JoinColumn()
     investment_payment_details: InvestmentPaymentDetailsEntity;
+
+    @Column({ nullable: true })
+    user_id: number;
+
+    @Column({ nullable: true })
+    is_active: boolean = true;
 }

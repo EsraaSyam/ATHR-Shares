@@ -1,0 +1,262 @@
+{{#> layout}}
+<div class="page-body">
+    <div class="d-flex justify-content-end mt-4">
+        <button type="button" class="btn btn-primary me-3" data-bs-toggle="modal" data-bs-target="#editPaymentModal">
+            <i data-feather="edit"></i> Edit Payment
+        </button>
+    </div>
+    <div class="container">
+        <h3 class="text-center my-4">Price Details</h3>
+        <div id="priceDetailsCard" class="card p-4 shadow">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label"><strong>Unit Price:</strong></label>
+                    <div id="unitPrice"></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label"><strong>Down Payment:</strong></label>
+                    <div id="downPayment"></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label"><strong>Net Share Price:</strong></label>
+                    <div id="netSharePrice"></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label"><strong>Monthly Installment:</strong></label>
+                    <div id="monthlyInstallment"></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label"><strong>Service Charge:</strong></label>
+                    <div id="serviceCharge"></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label"><strong>Total Price:</strong></label>
+                    <div id="totalPrice"></div>
+                </div>
+            </div>
+        </div>
+
+         <h3 class="text-center my-4"> Payment Details </h3>
+        <div id="additionalInfoCard" class="card p-4 shadow">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label"><strong>Payment Method:</strong></label>
+                    <div id="paymentMethod"></div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label"><strong>Created At:</strong></label>
+                    <div id="createdAt"></div>
+                </div>
+            
+                <div class="col-md-6 mb-3">
+                    <label class="form-label"><strong>Next Payment Date:</strong></label>
+                    <div id="nextPaymentDate"></div>
+                </div>
+                
+
+            </div>
+        </div>
+
+        <h3 class="text-center my-4">Investment Payment Details</h3>
+        <div id="investmentDetailsCard" class="card p-4 shadow">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label"><strong>Next Installment Price:</strong></label>
+                    <div id="nextInstallmentPrice"></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label"><strong>Next Installment Date:</strong></label>
+                    <div id="nextInstallmentDate"></div>
+                </div>
+            </div>
+            <h4 class="my-4">Payments</h4>
+            <ul id="paymentsList" class="list-group"></ul>
+        </div>
+
+    </div>
+
+    <!-- Edit Payment Modal -->
+    <div class="modal fade" id="editPaymentModal" tabindex="-1" aria-labelledby="editPaymentModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editPaymentModalLabel">Edit Payment Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editPaymentForm">
+                        <!-- Net Share Count -->
+                        <div class="mb-3">
+                            <label for="editNetShareCount" class="form-label">Net Share Count</label>
+                            <input type="number" id="editNetShareCount" class="form-control"
+                                placeholder="Enter net share count" min="0" required>
+                        </div>
+
+                        <!-- Payment Status -->
+                        <div class="mb-3">
+                            <label for="editPaymentStatus" class="form-label">Payment Status</label>
+                            <select id="editPaymentStatus" class="form-select" required>
+                                <option value="pending">Pending</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+
+                        <!-- Installment Type -->
+                        <div class="mb-3">
+                            <label for="editInstallmentType" class="form-label">Installment Type</label>
+                            <select id="editInstallmentType" class="form-select" required>
+                                <option value="12 month">12 Month</option>
+                                <option value="18 month">18 Month</option>
+                                <option value="24 month">24 Month</option>
+                            </select>
+                        </div>
+
+                        <!-- زر الحفظ -->
+                        <div class="text-end mt-4">
+                            <button type="button" id="saveEditPaymentButton" class="btn btn-primary">Save
+                                Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const paymentId = new URLSearchParams(window.location.search).get('id');
+
+        console.log('Payment ID:', paymentId);
+
+        const fetchData = async () => {
+            try {
+                const response = await fetch(`http://localhost:3000/api/v1/admin/payments/${paymentId}`);
+                console.log('Response:', response);
+                if (!response.ok) {
+                    const error = response.statusText || 'Failed to fetch payment details';
+                    console.error(error);
+                    throw new Error('Failed to fetch payment details');
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching payment details:', error);
+                alert('Failed to fetch payment details.');
+                return null;
+            }
+        };
+
+        const populateUI = (data) => {
+            if (!data) return;
+
+            document.getElementById('unitPrice').textContent = data.price_details?.unit_price || 'N/A';
+            document.getElementById('downPayment').textContent = data.price_details?.down_payment || 'N/A';
+            document.getElementById('netSharePrice').textContent = data.price_details?.net_share_price || 'N/A';
+            document.getElementById('monthlyInstallment').textContent = data.price_details?.monthly_installment || 'N/A';
+            document.getElementById('serviceCharge').textContent = data.price_details?.service_charge || 'N/A';
+            document.getElementById('totalPrice').textContent = data.price_details?.total_price || 'N/A';
+
+            document.getElementById('nextInstallmentPrice').textContent = data.investment_payment_details?.next_installment_price || 'N/A';
+            document.getElementById('nextInstallmentDate').textContent = data.investment_payment_details?.next_installment_date || 'N/A';
+
+            const paymentsList = document.getElementById('paymentsList');
+            paymentsList.innerHTML = '';
+            (data.investment_payment_details?.payments || []).forEach((payment) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item d-flex align-items-center';
+
+                const paymentImageUrl = 'http://localhost:3000/uploads/profile_images/1736756963453.jpeg';
+
+                listItem.innerHTML = `
+                        <div class="me-3">
+                            <strong>ID:</strong> ${payment.id || 'N/A'}<br>
+                            <strong>Payment Method:</strong> ${payment.payment_method || 'N/A'}
+                            <br>
+                            <strong>Payment Date:</strong> ${payment.created_at || 'N/A'}
+                        </div>
+                        <a href="${paymentImageUrl}" target="_blank">
+                            <img src="${paymentImageUrl}" alt="Payment Image" style="max-width: 200px; cursor: pointer; transition: all 0.3s ease;">
+                        </a>
+                    `;
+                paymentsList.appendChild(listItem);
+            });
+
+            function formatDateTime(isoString) {
+                if (!isoString) return 'N/A'; 
+
+                const date = new Date(isoString);
+                const formattedDate = date.toLocaleDateString('en-GB'); 
+                const formattedTime = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); 
+
+                return `${formattedDate}`;
+            }
+
+            
+            document.getElementById('nextPaymentDate').textContent = formatDateTime(data.next_payment_date);
+            document.getElementById('paymentMethod').textContent = data.payment_method || 'N/A';
+            document.getElementById('createdAt').textContent = formatDateTime(data.created_at);
+
+        };
+
+        const data = await fetchData();
+        console.log('Data:', data);
+        populateUI(data.data);
+
+        
+
+        const editPaymentModal = new bootstrap.Modal(document.getElementById('editPaymentModal'));
+        const editPaymentButton = document.querySelector('[data-bs-target="#editPaymentModal"]');
+
+        editPaymentButton.addEventListener('click', () => {
+            document.getElementById('editNetShareCount').value = data.data.net_share_count || '';
+            document.getElementById('editPaymentStatus').value = data.data.payment_status || 'pending';
+            document.getElementById('editInstallmentType').value = data.data.installment_type || '12 month';
+
+            editPaymentModal.show();
+        });
+
+        const saveEditPaymentButton = document.getElementById('saveEditPaymentButton');
+        saveEditPaymentButton.addEventListener('click', async () => {
+            const updatedData = {
+                net_share_count: document.getElementById('editNetShareCount').value,
+                payment_status: document.getElementById('editPaymentStatus').value,
+                installment_type: document.getElementById('editInstallmentType').value,
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/v1/admin/payment/${paymentId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatedData),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update payment details');
+                }
+
+                const result = await response.json();
+                alert('Payment details updated successfully!');
+                editPaymentModal.hide();
+                window.location.href = 'payment';
+
+                const newData = await fetchData();
+                populateUI(newData.data);
+            } catch (error) {
+                console.error('Error updating payment details:', error);
+                alert('Failed to update payment details.');
+            }
+        });
+    });
+
+
+</script>
+
+{{/layout}}

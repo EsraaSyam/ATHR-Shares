@@ -6,6 +6,9 @@ import { PriceDetailsEntity } from './entities/price-details.entity';
 import { CreatePaymentRequest } from './requests/create-payment.request';
 import { PaymentEntity } from './entities/payment.entity';
 import { GetPaymentDetailsRequest } from './requests/get-payment-detils.request';
+import { InstallmentType, PaymentTypes } from './payment.enum';
+import { identity } from 'rxjs';
+import { NotFoundException } from 'src/exceptions/not-found.exception';
 
 @Injectable()
 export class PaymentService {
@@ -24,10 +27,17 @@ export class PaymentService {
     async getPriceDetails(getPaymentDetailsRequest: GetPaymentDetailsRequest) {
         const realty = await this.realtysRepository.findOne({ where: { id: getPaymentDetailsRequest.realty_id }, relations: ['details', 'investmentDetails', 'images'] });
 
+        if ( !realty ) {
+            throw new NotFoundException('Realty not found');
+        }
+
+
         const realty_price = realty.investmentDetails.unit_price;
 
+        console.log(getPaymentDetailsRequest.payment_type === PaymentTypes.CASH);
+
         if (getPaymentDetailsRequest.net_share_count === 0) {
-            if (getPaymentDetailsRequest.payment_type === 'cash') {
+            if (getPaymentDetailsRequest.payment_type === PaymentTypes.CASH) {
                 const service_charge = (realty.investmentDetails.service_charge / 100) * realty_price;
                 return {
                     realty_price: realty_price,
@@ -46,13 +56,13 @@ export class PaymentService {
                 return {
                     realty_price: realty_price,
                     realty_down_payment: realty.investmentDetails.down_payment,
-                    installment_type: installment_type === 'month_12' ? Month_12 : installment_type === 'month_18' ? Month_18 : Month_24,
+                    installment_type: installment_type === InstallmentType.Month_12 ? Month_12 : installment_type === InstallmentType.Month_18 ? Month_18 : Month_24,
                     service_charge: service_charge,
                     total_price: realty.investmentDetails.down_payment + service_charge,
                 }
             }
         } else {
-            if (getPaymentDetailsRequest.payment_type == 'cash') {
+            if (getPaymentDetailsRequest.payment_type == PaymentTypes.CASH) {
                 const service_charge = (realty.investmentDetails.service_charge / 100) * realty_price;
                 return {
                     realty_price: realty_price,
@@ -73,7 +83,7 @@ export class PaymentService {
                     realty_price: realty_price,
                     net_share_price: realty.investmentDetails.net_share_price,
                     realty_down_payment: realty.investmentDetails.down_payment,
-                    installment_type: installment_type === 'month_12' ? Month_12 : installment_type === 'month_18' ? Month_18 : Month_24,
+                    installment_type: installment_type === InstallmentType.Month_12 ? Month_12 : installment_type === InstallmentType.Month_18 ? Month_18 : Month_24,
                     service_charge: service_charge,
                     total_price: realty.investmentDetails.down_payment + service_charge,
                 }
@@ -85,12 +95,16 @@ export class PaymentService {
     async createPayment(createPaymentRequest: CreatePaymentRequest) {
         const realty = await this.realtysRepository.findOne({ where: { id: createPaymentRequest.realty_id }, relations: ['details', 'investmentDetails', 'images'] });
 
+        if (!realty ) {
+            throw new NotFoundException('لا يوجد عقار بالرقم');
+        }
+
         const realty_price = realty.investmentDetails.unit_price;
 
         const priceDetails = new PriceDetailsEntity();
 
         if (createPaymentRequest.net_share_count === 0) {
-            if (createPaymentRequest.payment_type === 'cash') {
+            if (createPaymentRequest.payment_type === PaymentTypes.CASH) {
                 const service_charge = (realty.investmentDetails.service_charge / 100) * realty_price;
 
                 priceDetails.unit_price = realty_price;
@@ -107,12 +121,12 @@ export class PaymentService {
 
                 priceDetails.unit_price = realty_price;
                 priceDetails.down_payment = realty.investmentDetails.down_payment;
-                priceDetails.monthly_installment = installment_type === 'month_12' ? Month_12 : installment_type === 'month_18' ? Month_18 : Month_24;
+                priceDetails.monthly_installment = installment_type === InstallmentType.Month_12 ? Month_12 : installment_type === InstallmentType.Month_18 ? Month_18 : Month_24;
                 priceDetails.service_charge = service_charge;
                 priceDetails.total_price = realty.investmentDetails.down_payment + service_charge;
             }
         } else {
-            if (createPaymentRequest.payment_type === 'cash') {
+            if (createPaymentRequest.payment_type === PaymentTypes.CASH) {
                 const service_charge = (realty.investmentDetails.service_charge / 100) * realty_price;
 
                 priceDetails.unit_price = realty_price;
@@ -131,7 +145,7 @@ export class PaymentService {
                 priceDetails.unit_price = realty_price;
                 priceDetails.net_share_price = realty.investmentDetails.net_share_price;
                 priceDetails.down_payment = realty.investmentDetails.down_payment;
-                priceDetails.monthly_installment = installment_type === 'month_12' ? Month_12 : installment_type === 'month_18' ? Month_18 : Month_24;
+                priceDetails.monthly_installment = installment_type === InstallmentType.Month_12 ? Month_12 : installment_type === InstallmentType.Month_18 ? Month_18 : Month_24;
                 priceDetails.service_charge = service_charge;
                 priceDetails.total_price = realty.investmentDetails.down_payment + service_charge;
             }
@@ -142,6 +156,8 @@ export class PaymentService {
         await this.priceDetailsRepository.save(priceDetails);
 
         const payment = new PaymentEntity();
+
+        payment.user_id = createPaymentRequest.user_id;
 
         payment.realty_id = createPaymentRequest.realty_id;
 

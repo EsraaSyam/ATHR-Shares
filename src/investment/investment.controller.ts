@@ -21,7 +21,9 @@ export class InvestmentController {
     async getInvestmentPaymentDetails(@Body() body: GetInvestmentPaymentDetailsRequest, @Req() req, @Res() res: Response) {
         const user = req.user;
         body.user_id = user.sub;
+
         return res.json({
+            message: 'تفاصيل السعر',
             data: await this.investmentService.getInvestmentPaymentDetailsForUnits(body),
         });
     }
@@ -32,79 +34,91 @@ export class InvestmentController {
     async getInvestmentPaymentDetailsForNetShare(@Body() body: GetInvestmentPaymentDetailsRequest, @Req() req, @Res() res: Response) {
         const user = req.user;
         body.user_id = user.sub;
-        return res.json({
-            data: await this.investmentService.getInvestmentPaymentDetailsForNetShare(body),
-        });
+
+        try {
+            const data = await this.investmentService.getInvestmentPaymentDetailsForNetShare(body);
+            return res.status(200).json({
+                message: 'تفاصيل السعر',
+                data,
+            });
+        } catch (e) {
+            return res.status(400).json({
+                message: 'لا يوجد بيانات',
+                error: e.message,
+            });
+        }
+
+
     }
 
     @Post('unit/payment')
     @Roles(Role.USER)
     @UseInterceptors(
-            FilesInterceptor('payment_image', 1, {
-                storage: diskStorage({
-                    destination: './uploads/investmet-payment-images',
-                    filename: (req, file, callback) => {
-                        const uniqueName = `${Date.now()}${extname(file.originalname)}`;
-                        callback(null, uniqueName);
-                    },
-                }),
+        FilesInterceptor('payment_image', 1, {
+            storage: diskStorage({
+                destination: './uploads/investmet-payment-images',
+                filename: (req, file, callback) => {
+                    const uniqueName = `${Date.now()}${extname(file.originalname)}`;
+                    callback(null, uniqueName);
+                },
             }),
-        )
+        }),
+    )
     async payInvestmentPaymentForUnits(@Body() body: PayInvestmentPaymentRequest, @UploadedFiles() file: Express.Multer.File, @Req() req, @Res() res: Response) {
         const user = req.user;
         body.user_id = user.sub;
 
         if (!file) {
             return res.status(400).json({
-                message: 'No file uploaded',
+                message: 'لا يوجد ملف مرفق',
             });
         }
 
         const fileUrls = `/uploads/investmet-payment-images/${file[0].filename}`;
 
         body.payment_image = fileUrls;
-        
+
         await this.investmentService.payInvestmentPaymentForUnits(body);
 
         return res.status(200).json({
-            message: 'Investment payment paid successfully',
+            message: 'تم الدفع بنجاح',
         });
-        
+
     }
 
 
     @Post('net-share/payment')
     @Roles(Role.USER)
     @UseInterceptors(
-            FilesInterceptor('payment_image', 1, {
-                storage: diskStorage({
-                    destination: './uploads/investmet-payment-images',
-                    filename: (req, file, callback) => {
-                        const uniqueName = `${Date.now()}${extname(file.originalname)}`;
-                        callback(null, uniqueName);
-                    },
-                }),
+        FilesInterceptor('payment_image', 1, {
+            storage: diskStorage({
+                destination: './uploads/investmet-payment-images',
+                filename: (req, file, callback) => {
+                    const uniqueName = `${Date.now()}${extname(file.originalname)}`;
+                    callback(null, uniqueName);
+                },
             }),
-        )
+        }),
+    )
     async payInvestmentPaymentForNetShare(@Body() body: PayInvestmentPaymentRequest, @UploadedFiles() file: Express.Multer.File, @Req() req, @Res() res: Response) {
         const user = req.user;
         body.user_id = user.sub;
 
         if (!file) {
             return res.status(400).json({
-                message: 'No file uploaded',
+                message: 'لا يوجد ملف مرفق',
             });
         }
 
         const fileUrls = `/uploads/investmet-payment-images/${file[0].filename}`;
 
         body.payment_image = fileUrls;
-        
+
         await this.investmentService.payInvestmentPaymentForNetShare(body);
 
         return res.status(200).json({
-            message: 'Investment payment paid successfully',
+            message: 'تم الدفع بنجاح',
         });
-        
+
     }
 }

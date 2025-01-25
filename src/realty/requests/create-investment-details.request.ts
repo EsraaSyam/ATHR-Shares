@@ -1,9 +1,6 @@
 import { IsNotEmpty, IsNumber } from "class-validator";
 
 export class CreateInvestmentDetails {
-    @IsNotEmpty()
-    @IsNumber()
-    unit_price: number;
 
     @IsNotEmpty()
     @IsNumber()
@@ -19,4 +16,7 @@ export class CreateInvestmentDetails {
         month_18?: number;
         month_24?: number;
     };
+
+    @IsNotEmpty()
+    service_charge: number;
 }

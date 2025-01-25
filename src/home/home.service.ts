@@ -6,6 +6,7 @@ import { BannerEntity } from './banner.entity';
 import { Repository } from 'typeorm';
 import { TokenNotValid } from 'src/exceptions/token-not-valid.exception';
 import { UserEntity } from 'src/users/user.entity';
+import { NotFoundException } from 'src/exceptions/not-found.exception';
 
 @Injectable()
 export class HomeService {
@@ -22,12 +23,14 @@ export class HomeService {
         let banners =  await this.bannersRepository.find({ where: { is_active: true } });
 
         if (!banners || banners.length === 0) {
-            throw new Error('لا توجد بنرات');
+            throw new NotFoundException('لا توجد بنرات');
         }
 
         banners.forEach(banner => {
-            banner.image_url = `${process.env.APP_URL}/${banner.image_url}`;
+            banner.image_url = `${process.env.SERVER_URL}${banner.image_url}`;
         })
+
+        return banners;
     }
 
     async saveBannerImageUrl(imageUrl: string, description: string) {
@@ -40,9 +43,10 @@ export class HomeService {
 
     async uploadPassport(id: string, imageUrl: string) {
         const userData = await this.usersService.findByIdWithout(Number(id));
-        // if (user.passport_photo !== null || user.id_photo_back !== null) {
-        //     throw new TokenNotValid('تم إكمال الملف الشخصي بالفعل');
-        // }
+
+        if (userData.passport_photo !== null || userData.id_photo_back !== null) {
+            throw new TokenNotValid('تم إكمال الملف الشخصي بالفعل');
+        }
 
         userData.passport_photo = imageUrl;
         userData.is_completed = true;
@@ -52,9 +56,10 @@ export class HomeService {
 
     async uploadIdPhotos(id: string, image_url: string[]) {
         const userData = await this.usersService.findByIdWithout(Number(id));
-        // if (user.passport_photo !== null || user.id_photo_back !== null) {
-        //     throw new TokenNotValid('تم إكمال الملف الشخصي بالفعل');
-        // }
+
+        if (userData.passport_photo !== null || userData.id_photo_back !== null) {
+            throw new TokenNotValid('تم إكمال الملف الشخصي بالفعل');
+        }
 
         userData.id_photo_front = image_url[0];
         userData.id_photo_back = image_url[1];
@@ -67,4 +72,3 @@ export class HomeService {
         return await this.bannersRepository.delete(id);
     }
 }
-

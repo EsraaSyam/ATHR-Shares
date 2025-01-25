@@ -94,7 +94,9 @@ export class UsersService {
     }
 
     async findById(id: number) {
-        return this.usersRepository.findOne({ where: { id: id.toString() }, relations: ['payments'] });
+        return this.usersRepository.findOne({ where: { id: id.toString() }, relations: ['payments', 
+                'payments.investment_payment_details', 
+                'payments.investment_payment_details.payments'] });
     }
 
     async findByIdWithout(id: number) {

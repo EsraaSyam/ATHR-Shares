@@ -53,5 +53,4 @@ export class RealtyEntity {
 
     @OneToMany(() => PriceDetailsEntity, (priceDetails) => priceDetails.realty, {nullable: true} )
     priceDetails: PriceDetailsEntity[];
-6
 }
