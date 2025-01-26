@@ -43,7 +43,7 @@ export class AuthController {
             );
         }
 
-        if (! req.session) {
+        if (!req.session) {
             return res.status(500).json({ message: 'حدث خطأ في إنشاء الجلسة. يرجى المحاولة لاحقًا' });
         }
 
@@ -58,6 +58,19 @@ export class AuthController {
                 session: req.session,
             }
         );
+    }
+
+    @Post('/admin/logout')
+    async logoutAdmin(@Req() req, @Res() res: Response) {
+        req.session.destroy(err => {
+            if (err) {
+                console.error('Error destroying session:', err);
+                return res.status(500).json({ message: 'Failed to log out' });
+            }
+
+            res.clearCookie('connect.sid');
+            return res.status(200).json({ message: "Successfully logged"});
+        });
     }
 
     @Post('login')

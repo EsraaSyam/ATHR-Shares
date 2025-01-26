@@ -138,6 +138,8 @@
           body: JSON.stringify({ email, password }),
         });
 
+
+
         if (!response.ok) {
           const errorData = await response.json();
           const errorMessage = document.getElementById('error-message');
@@ -147,6 +149,8 @@
         }
 
         const data = await response.json();
+
+
 
         localStorage.setItem('data', JSON.stringify(data.data));
 

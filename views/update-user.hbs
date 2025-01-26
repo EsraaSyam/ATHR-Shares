@@ -99,19 +99,6 @@
       }
     });
   });
-
-  const logoutButton = document.getElementById('logoutButton');
-  logoutButton.addEventListener('click', () => {
-    localStorage.removeItem('data');
-    window.location.href = 'login_one';
-  });
-
-  window.onload = () => {
-    const user = JSON.parse(localStorage.getItem('data'));
-    if (!user || !user.name || !user.profile_photo) return;
-    document.getElementById('userName').textContent = user.name;
-    document.getElementById('profileImage').src = user.profile_photo;
-  };
 </script>
 
 {{/layout}}

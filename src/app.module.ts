@@ -72,6 +72,9 @@ import path from 'path';
           PriceDetailsEntity, PaymentEntity, TokenEntity,InvestmentPaymentDetailsEntity, PaymentForInvestmentEntity, AdminEntity,
         ],
         synchronize: true,
+        ssl: {
+          rejectUnauthorized: false, 
+        }
       }),
 
       inject: [ConfigService],
