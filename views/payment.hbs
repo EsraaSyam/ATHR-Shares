@@ -41,7 +41,11 @@
       try {
         currentPage = parseInt(page);
         const response = await fetch(`http://localhost:3000/api/v1/admin/payments?page=${page}`);
-        if (!response.ok) throw new Error('Failed to fetch payments');
+        if (!response.ok) {
+          const errorData = await response.json();
+          showToast(errorData.message || 'Failed to fetch payment data.', 'failure');
+          return;
+        }
 
         const data = await response.json();
         const payment_data = data.data.payments;
@@ -72,11 +76,12 @@
                             <td><a href="/dashboard/update-realty?id=${payment.realty_id}" class="btn px-2" style="background-color: #006A4E; color: white;">
                 show it</td>
                             <td>${userName}</td>
-                            <td><a href="/dashboard/payment-more-info?id=${payment.user_id}" class="btn px-4" style="background-color: #006A4E; color: white;">View</button></td>
+                            <td><a href="/dashboard/payment-more-info?id=${payment.id}" class="btn px-4" style="background-color: #006A4E; color: white;">View</button></td>
                             <td><button class="btn btn-danger px-3" data-id="${payment.id}" onclick="deletePayment(this)">Delete</button></td>
                         </tr>`;
           } catch (error) {
-            console.error('Error fetching user data:', error);
+            const errorMessage = error.message ;
+            showToast(errorMessage, 'failure');
             return '';
           }
         });
@@ -85,7 +90,8 @@
         userTableBody.innerHTML = userRows.join('');
         updatePaginationControls(currentPage, numberOfPages);
       } catch (error) {
-        console.error('Error fetching users:', error);
+        const errorMessage = error.message ;
+        showToast(errorMessage, 'failure');
       }
     }
 

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
 import { UserEntity } from 'src/users/user.entity';
 import { UsersService } from 'src/users/user.service';
-import { Not, Repository } from 'typeorm';
+import { Brackets, ILike, Like, Not, Repository } from 'typeorm';
 import { AdminEntity } from '../auth/entities/admin.entity';
 import * as bycrpt from 'bcrypt';
 import { Role } from 'src/users/user.enum';
@@ -16,6 +16,13 @@ import { RegisterAdminRequest } from './requests/register-admin-request';
 import { UpdatePaymentRequest } from './requests/update-payment.request';
 import { last } from 'rxjs';
 import { RealtyEntity } from 'src/realty/entities/realty.entity';
+import { PaymentMethodsEntity } from './entities/payment-methods.entity';
+import { CreatePaymentMethodRequest } from './requests/create-payment-methods.request';
+import { UpdatePaymentMethodsRequest } from './requests/update-payment-methods.request';
+import { json } from 'body-parser';
+import { CreateSocialMediaRequest } from './requests/create-social-media.request';
+import { SocialMediaEntity } from './entities/social-media.entitiy';
+import { UpdateSocialMediaRequest } from './requests/update-social-media.request';
 
 @Injectable()
 export class AdminService {
@@ -30,6 +37,10 @@ export class AdminService {
         private paymentRepository: Repository<PaymentEntity>,
         @InjectRepository(RealtyEntity)
         private realtyRepository: Repository<RealtyEntity>,
+        @InjectRepository(PaymentMethodsEntity)
+        private paymentMethodsRepository: Repository<PaymentMethodsEntity>,
+        @InjectRepository(SocialMediaEntity)
+        private socialMediaRepository: Repository<SocialMediaEntity>,
     ) { }
 
     private formatDate(date: Date): string {
@@ -72,20 +83,28 @@ export class AdminService {
     }
 
 
-    async getUsers(page: number = 1, limit: number = 10) {
-        const [users, total_count] = await this.userRepository.findAndCount({
-            where: {
-                is_active: true,
-                role: Not(Role.GUEST),
-            },
-            skip: (page - 1) * limit,
-            take: limit,
-            order: { id: 'ASC' }, 
-        });
-
+    async getUsers(page: number = 1, limit: number = 10, search: string = '') {
+        const queryBuilder = this.userRepository.createQueryBuilder('user');
+        
+        queryBuilder.where('user.is_active = :is_active', { is_active: true })
+                    .andWhere('user.role != :role', { role: Role.GUEST });
+    
+        if (search) {
+            queryBuilder.andWhere(
+                new Brackets(qb => {
+                    qb.where('user.full_name LIKE :search', { search: `%${search}%` })
+                      .orWhere('user.phone_number LIKE :search', { search: `%${search}%` });
+                })
+            );
+        }
+    
+        queryBuilder.skip((page - 1) * limit)
+                    .take(limit)
+                    .orderBy('user.id', 'ASC');
+    
+        const [users, total_count] = await queryBuilder.getManyAndCount();
+    
         const numberOfPages = Math.ceil(total_count / limit);
-
-
     
         return {
             total_count,
@@ -101,6 +120,19 @@ export class AdminService {
                 is_verified: user.is_verified,
             }))
         };
+    }
+    
+
+    async searchUser(user: any) {
+        console.log(user);
+        const users = await this.userRepository.find({
+            where: [
+                { full_name: Like(`%${user}%`) },
+                { phone_number: user },
+            ],
+        });
+
+        return users;
     }
     
 
@@ -123,6 +155,8 @@ export class AdminService {
         if (!Object.keys(updateUser).length) {
             throw new BadRequestException('At least one field is required to update user');
         }
+
+        console.log(updateUser.password.length);
 
         if (!id) {
             throw new BadRequestException('User id is required');
@@ -148,14 +182,16 @@ export class AdminService {
         const updatedFields: Partial<UserEntity> = {};
 
         Object.entries(updateUser).forEach(([key, value]) => {
-            if (value !== undefined) {
+            if (value !== undefined && value.length > 0) {
                 updatedFields[key] = value;
             } else {
                 updatedFields[key] = user[key];
             }
         });
 
-
+        if (updateUser.password.length > 0) {
+            updatedFields.password = await bycrpt.hash(updateUser.password, 10);
+        }
 
         await this.userRepository.update(id, updatedFields);
 
@@ -260,5 +296,90 @@ export class AdminService {
             currentPage: page,
         };
     }
+
+    async getAllPaymentMethods() {
+        const paymentMethods = await this.paymentMethodsRepository.find();
+        
+        if (paymentMethods.length === 0) {
+            throw new NotFoundException('No Payment Methods found');
+        }
+    
+        return paymentMethods.sort((a, b) => a.id - b.id);
+    }
+    
+    async getPaymentMethodById(id: number){
+        const paymentMethod = await this.paymentMethodsRepository.findOne({ where: { id: id } });
+
+        if (!paymentMethod) {
+            throw new NotFoundException(`Payment Method with id ${id} does not exist`);
+        }
+
+        return paymentMethod;
+    }
+
+    async createPaymentMethod(method: CreatePaymentMethodRequest){
+        return this.paymentMethodsRepository.save(method);
+    }
+
+    async updatePaymentMethod(id: number, method: UpdatePaymentMethodsRequest){
+        const paymentMethod = await this.paymentMethodsRepository.findOne({ where: { id: id } });
+
+        if (!paymentMethod) {
+            throw new NotFoundException(`Payment Method with id ${id} does not exist`);
+        }
+
+        paymentMethod.method_name = method.method_name || paymentMethod.method_name;
+        paymentMethod.value = method.value || paymentMethod.value;
+        paymentMethod.is_active = method.is_active,
+
+        await this.paymentMethodsRepository.save(paymentMethod);
+    }
+
+    async createSocialMedia(socialMedia: CreateSocialMediaRequest) {
+        const confilict = await this.socialMediaRepository.findOne({
+            where: { url: socialMedia.url }
+        })
+
+        if (confilict) {
+            throw new BadRequestException('Social Media with this url already exists');
+        }
+
+        return this.socialMediaRepository.save(socialMedia);
+    }
+
+    async getAllSocialMedia() {
+        const socialMedia = await this.socialMediaRepository.find();
+        
+        if (socialMedia.length === 0) {
+            throw new NotFoundException('No Social Media found');
+        }
+
+        return socialMedia.sort((a, b) => a.id - b.id);
+    }
+
+    async getSocialMediaById(id: number) {
+        const socialMedia = await this.socialMediaRepository.findOne({ where: { id: id } });
+
+        if (!socialMedia) {
+            throw new NotFoundException(`Social Media with id ${id} does not exist`);
+        }
+
+        return socialMedia;
+    }
+
+    async updateSocialMedia(id: number, socialMedia: UpdateSocialMediaRequest) {
+        const socialMediaEntity = await this.socialMediaRepository.findOne({ where: { id: id } });
+
+        if (!socialMediaEntity) {
+            throw new NotFoundException(`Social Media with id ${id} does not exist`);
+        }
+
+        socialMediaEntity.name = socialMedia.name || socialMediaEntity.name;
+        socialMediaEntity.url = socialMedia.url || socialMediaEntity.url;
+        socialMediaEntity.is_active = socialMedia.is_active ;
+
+        await this.socialMediaRepository.save(socialMediaEntity);
+    }
+
     
 }

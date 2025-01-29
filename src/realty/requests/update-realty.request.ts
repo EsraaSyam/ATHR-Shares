@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { UpdateRealtyDetailsRequest } from './update-realty-details.request';
 import { UpdateInvestmentDetails } from './update-investment-details';
 
@@ -19,6 +19,9 @@ export class UpdateRealtyRequest {
 
   @IsOptional()
   net_return?: number;
+
+  @IsOptional()
+  sale_date?: string;
 
   @IsOptional()
   down_payment?: number;

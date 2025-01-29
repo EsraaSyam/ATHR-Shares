@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export class AdminUpdateUserRequest {
     @IsString()
@@ -13,6 +13,9 @@ export class AdminUpdateUserRequest {
     @IsOptional()
     @IsEmail()
     email: string;
+
+    @IsOptional()
+    password: string;
 
     @IsOptional()
     is_completed: boolean;

@@ -66,4 +66,16 @@ export class DashboardController {
         };
     }
 
+    @Get('/payment-settings')
+    @Render('payment_settings')
+    getPaymentSettingsPage(@Res() res) {
+        return { title: 'Payment Settings' };
+    }
+
+    @Get('/social')
+    @Render('social')
+    getSocialPage(@Res() res) {
+        return { title: 'Social' };
+    }
+
 }

@@ -14,6 +14,10 @@ import { RegisterAdminRequest } from './requests/register-admin-request';
 import { isValidId } from 'src/validators/is-valid-id.decorator';
 import { UpdatePaymentRequest } from './requests/update-payment.request';
 import { SessionAuthGuard } from 'src/common/guards/admin.guard';
+import { CreatePaymentMethodRequest } from './requests/create-payment-methods.request';
+import { UpdatePaymentMethodsRequest } from './requests/update-payment-methods.request';
+import { CreateSocialMediaRequest } from './requests/create-social-media.request';
+import { UpdateSocialMediaRequest } from './requests/update-social-media.request';
 
 @Controller('admin')
 @UseGuards(SessionAuthGuard)
@@ -68,8 +72,8 @@ export class AdminController {
     }
 
     @Get('/users')
-    async getUsers(@Res() res: Response, @Query('page') page: number, @Query('limit') limit: number) {
-        const users = await this.adminService.getUsers(page, limit);
+    async getUsers(@Res() res: Response, @Query('page') page: number, @Query('limit') limit: number, @Query('search') search?: string) {
+        const users = await this.adminService.getUsers(page, limit, search);
 
         return res.status(200).json(
             {
@@ -140,6 +144,19 @@ export class AdminController {
             );
         }
 
+    }
+
+    @Get('/search_users')
+    async searchUsers(@Query('search') search: string, @Res() res: Response) {
+        console.log(search);
+        const users = await this.adminService.searchUser(search);
+
+        return res.status(200).json(
+            {
+                message: 'تم جلب البيانات بنجاح',
+                data: users,
+            }
+        );
     }
 
     @Get('/payments')
@@ -219,5 +236,106 @@ export class AdminController {
             }
         );
     }
+
+    @Post('/payment_methods')
+    @UseInterceptors(AnyFilesInterceptor())
+    async addPaymentMethod(@Body() createPaymrntMethodRequest : CreatePaymentMethodRequest, @Res() res: Response) {
+        const paymentMethodEntity = await this.adminService.createPaymentMethod(createPaymrntMethodRequest);
+
+        return res.status(201).json(
+            {
+                message: 'تم اضافة طريقة الدفع بنجاح',
+                data: paymentMethodEntity,
+            }
+        );
+    }
+
+    @Get('/payment_methods')
+    async getAllPaymentMethods(@Res() res: Response) {
+        const paymentMethods = await this.adminService.getAllPaymentMethods();
+
+        return res.status(200).json(
+            {
+                message: 'تم بنجاح',
+                data: paymentMethods,
+            }
+        );
+    }
+
+    @Get('/payment_methods/:id')
+    async getPaymentMethod(@Param('id') @isValidId() id: string, @Res() res: Response) {
+        const paymentMethod = await this.adminService.getPaymentMethodById(parseInt(id));
+
+        return res.status(200).json(
+            {
+                message: 'تم بنجاح',
+                data: paymentMethod,
+            }
+        );
+    }
+
+    @Put('/payment_methods/:id')
+    @UseInterceptors(AnyFilesInterceptor())
+    async updatePaymentMethod(@Param('id') id: string, @Body() updatePaymentMethodRequest: UpdatePaymentMethodsRequest, @Res() res: Response) {
+        const updatedPaymentMethod = await this.adminService.updatePaymentMethod(parseInt(id), updatePaymentMethodRequest);
+
+        return res.status(200).json(
+            {
+                message: 'تم تحديث طريقة الدفع بنجاح',
+                data: updatedPaymentMethod,
+            }
+        );
+    }
+
+    @Get('/social-media')
+    async getAllSocialMedia(@Res() res: Response) {
+        const socialMedia = await this.adminService.getAllSocialMedia();
+
+        return res.status(200).json(
+            {
+                message: 'تم بنجاح',
+                data: socialMedia,
+            }
+        );
+    }
+
+    @Get('/social-media/:id')
+    async getSocialMedia(@Param('id') @isValidId() id: string, @Res() res: Response) {
+        const socialMedia = await this.adminService.getSocialMediaById(parseInt(id));
+
+        return res.status(200).json(
+            {
+                message: 'تم بنجاح',
+                data: socialMedia,
+            }
+        );
+    }
+
+    @Post('/social-media')
+    @UseInterceptors(AnyFilesInterceptor())
+    async addSocialMedia(@Body() createSocialMediaRequest : CreateSocialMediaRequest, @Res() res: Response) {
+        const socialMedia = await this.adminService.createSocialMedia(createSocialMediaRequest);
+
+        return res.status(201).json(
+            {
+                message: 'تم اضافة وسيلة التواصل الاجتماعي بنجاح',
+                data: socialMedia,
+            }
+        );
+    }
+
+    @Put('/social-media/:id')
+    @UseInterceptors(AnyFilesInterceptor())
+    async updateSocialMedia(@Param('id') id: string, @Body() updateSocialMediaRequest: UpdateSocialMediaRequest, @Res() res: Response) {
+        const socialMedia = await this.adminService.updateSocialMedia(parseInt(id), updateSocialMediaRequest);
+
+        return res.status(200).json(
+            {
+                message: 'تم تحديث وسيلة التواصل الاجتماعي بنجاح',
+                data: socialMedia,
+            }
+        );
+    }
+
 
 }

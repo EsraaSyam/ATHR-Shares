@@ -138,7 +138,6 @@
         const fetchData = async () => {
             try {
                 const response = await fetch(`http://localhost:3000/api/v1/admin/payments/${paymentId}`);
-                console.log('Response:', response);
                 if (!response.ok) {
                     const error = response.statusText || 'Failed to fetch payment details';
                     console.error(error);
@@ -154,6 +153,8 @@
 
         const populateUI = (data) => {
             if (!data) return;
+
+            console.log("data" + data);
 
             document.getElementById('unitPrice').textContent = data.price_details?.unit_price || 'N/A';
             document.getElementById('downPayment').textContent = data.price_details?.down_payment || 'N/A';

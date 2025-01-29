@@ -16,6 +16,15 @@
         <label for="userPhoneNumber" class="form-label">Phone Number</label>
         <input type="text" id="userPhoneNumber" class="form-control" placeholder="Enter phone number">
       </div>
+      <div class="mb-3">
+        <label for="userPassword" class="form-label">Password</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="icon-lock"></i></span>
+          <input type="password" id="userPassword" class="form-control" placeholder="Enter password">
+          </div>
+        </div>
+      </div>
+
       <div class="form-check mb-3">
         <input type="checkbox" id="userIsCompleted" class="form-check-input">
         <label for="userIsCompleted" class="form-check-label">Is Completed</label>
@@ -48,6 +57,7 @@
     const fullNameInput = document.getElementById('userFullName');
     const emailInput = document.getElementById('userEmail');
     const phoneNumberInput = document.getElementById('userPhoneNumber');
+    const passwordInput = document.getElementById('userPassword');
     const isCompletedCheckbox = document.getElementById('userIsCompleted');
     const isVerifiedCheckbox = document.getElementById('userIsVerified');
     const saveButton = document.getElementById('saveUserButton');
@@ -61,6 +71,7 @@
       fullNameInput.value = user.full_name;
       emailInput.value = user.email;
       phoneNumberInput.value = user.phone_number || '';
+      passwordInput.value = '';
       isCompletedCheckbox.checked = user.is_completed;
       isVerifiedCheckbox.checked = user.is_verified;
     } catch (error) {
@@ -70,10 +81,16 @@
     }
 
     saveButton.addEventListener('click', async () => {
+      
+      if (passwordInput.value.length < 6 && passwordInput.value.length > 0) {
+        showToast('Password must be at least 8 characters long.', 'failure');
+        return;
+      }
       const updatedUser = {
         full_name: fullNameInput.value,
         email: emailInput.value,
         phone_number: phoneNumberInput.value,
+        password: passwordInput.value,
         is_completed: isCompletedCheckbox.checked,
         is_verified: isVerifiedCheckbox.checked,
       };

@@ -1,0 +1,281 @@
+{{#> layout}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="page-body">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>Social Media Links </h5>
+                    <button class="btn btn-primary px-3" id="addSocialButton" style="min-width: 110px;">Add Social
+                        Media</button>
+
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table" id="userTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Name</th>
+                            <th scope="col"> Url</th>
+                            <th scope="col">Is Active </th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Editing Payment Method -->
+<div id="editSocialModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Social Media Links </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editSocialForm">
+                    <input type="hidden" id="socialId">
+                    <div class="form-group">
+                        <label for="socialName"> Name</label>
+                        <input type="text" id="socialName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="url">Url</label>
+                        <input type="text" id="url" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="isActive">Is Active</label>
+                        <input type="checkbox" id="isActive">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Adding Social Media -->
+<div class="modal fade" id="addSocialModal" tabindex="-1" aria-labelledby="addSocialModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSocialModalLabel">Add Social Media Link</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSocialForm">
+                    <div class="mb-3">
+                        <label for="socialNameCreate" class="form-label">Name</label>
+                        <input type="text" id="socialNameCreate" class="form-control" placeholder="Enter social media name"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="socialUrlCreate" class="form-label">Url</label>
+                        <input type="text" id="socialUrlCreate" class="form-control" placeholder="Enter social media URL"
+                            required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const userTableBody = document.getElementById('userTableBody');
+        const editSocialModal = new bootstrap.Modal(document.getElementById('editSocialModal'));
+        const addSocialModal = new bootstrap.Modal(document.getElementById('addSocialModal'));
+        const addSocialForm = document.getElementById('addSocialForm');
+
+        addSocialButton.addEventListener('click', () => {
+            addSocialModal.show();
+        });
+
+        addSocialForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const socialName = document.getElementById('socialNameCreate').value.trim();
+            const socialUrl = document.getElementById('socialUrlCreate').value.trim();
+
+            if (!socialName || !socialUrl) {
+                console.log("socialUrl", socialUrl);
+                console.log("socialName", socialName);
+
+                showToast('Please fill all required fields.', 'failure');
+                return;
+            }
+
+            const socialData = {
+                name: socialName,
+                url: socialUrl,
+            };
+
+            try {
+                const response = await fetch('http://localhost:3000/api/v1/admin/social-media', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(socialData)
+                });
+
+                if (response.ok) {
+                    showToast('Social media link added successfully!', 'success');
+                    addSocialModal.hide();
+                    fetchSocial();
+                } else {
+                    const errorData = await response.json();
+                    showToast(errorData.message || 'Failed to add social media link.', 'failure');
+                }
+            } catch (error) {
+                console.error('Error adding social media link:', error);
+                showToast('An error occurred while adding the social media link.', 'failure');
+            }
+        });
+
+
+        async function fetchSocial() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/v1/admin/social-media`, {
+                    method: 'GET',
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    showToast(errorData.message || 'Failed to fetch payment data.', 'failure');
+                    return;
+                }
+
+                const data = await response.json();
+                const social_data = data.data;
+
+                userTableBody.innerHTML = '';
+                let cnt = 1;
+
+                const socialPromises = social_data.map(async (social) => {
+                    try {
+                        const row = `
+      <tr>
+        <td>${cnt++}</td>
+        <td>${social.name}</td>
+        <td><a href="${social.url}" target="_blank" rel="noopener noreferrer">${social.url}</a></td>
+        <td>${social.is_active}</td>
+        <td>
+         <button class="btn btn-primary btn-sm btn-edit px-4" onclick="openEditModal(${social.id})">Edit</button>
+        </td>
+      </tr>`;
+                        return row;
+                    } catch (error) {
+                        const errorMessage = error.message;
+                        showToast(errorMessage, 'failure');
+                        return '';
+                    }
+                });
+
+                const userRows = await Promise.all(socialPromises);
+                userTableBody.innerHTML = userRows.join('');
+            } catch (error) {
+                const errorMessage = error.message;
+                showToast(errorMessage, 'failure');
+            }
+        }
+
+        window.openEditModal = async function (id) {
+            try {
+                console.log("id: " + id);
+                const response = await fetch(`http://localhost:3000/api/v1/admin/social-media/${id}`,
+                    {
+                        method: 'GET',
+                    });
+
+                console.log("response: " + response);
+
+                if (!response.ok) throw new Error('Failed to fetch social media links');
+
+                let social = await response.json();
+
+                social = social.data;
+
+                document.getElementById('socialId').value = id;
+                document.getElementById('socialName').value = social.name;
+                document.getElementById('url').value = social.url;
+                document.getElementById('isActive').checked = social.is_active;
+
+
+                editSocialModal.show();
+            } catch (error) {
+                showToast(error.message, 'failure');
+            }
+        };
+
+        document.getElementById('editSocialForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const socialId = document.getElementById('socialId').value;
+            const updatedPayment = {
+                name: document.getElementById('socialName').value,
+                url: document.getElementById('url').value,
+                is_active: document.getElementById('isActive').checked = document.getElementById('isActive').checked ? true : false,
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/v1/admin/social-media/${socialId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedPayment)
+                });
+
+                if (!response.ok) throw new Error('Failed to update payment method');
+
+                showToast('Payment method updated successfully', 'success');
+                editSocialModal.hide();
+                fetchSocial();
+            } catch (error) {
+                showToast(error.message, 'failure');
+            }
+        });
+
+        fetchSocial();
+    });
+</script>
+
+<style>
+    .pagination-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin: 0 5px;
+        border: 1px solid #ddd;
+        background-color: #fff;
+        color: #006A4E;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .pagination-btn:hover {
+        background-color: #006A4E;
+        color: #fff;
+        border-color: #006A4E;
+        transform: scale(1.1);
+    }
+
+    .active-page {
+        background-color: #006A4E !important;
+        color: #fff !important;
+        border-color: #006A4E !important;
+    }
+
+    .pagination-btn i {
+        font-size: 14px;
+    }
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{{/layout}}

@@ -33,6 +33,8 @@ import { join } from 'path';
 import { I18nModule } from 'nestjs-i18n';
 import { AcceptLanguageResolver } from 'nestjs-i18n';
 import path from 'path';
+import { PaymentMethodsEntity } from './admin/entities/payment-methods.entity';
+import { SocialMediaEntity } from './admin/entities/social-media.entitiy';
 
 @Module({
   imports: [
@@ -69,7 +71,8 @@ import path from 'path';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity, RealtyImagesEntity, RealtyBackgroundEntity,
-          PriceDetailsEntity, PaymentEntity, TokenEntity,InvestmentPaymentDetailsEntity, PaymentForInvestmentEntity, AdminEntity,
+          PriceDetailsEntity, PaymentEntity, TokenEntity,InvestmentPaymentDetailsEntity, PaymentForInvestmentEntity, AdminEntity, PaymentMethodsEntity,
+          SocialMediaEntity,
         ],
         synchronize: true,
         ssl: {

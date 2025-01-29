@@ -160,6 +160,8 @@ export class RealtyController {
         @Res() res: Response,
     ) {
         try {
+            console.log("updateRealtyRequest", updateRealtyRequest);
+
             const realty = await this.realtyService.updateRealty(id, updateRealtyRequest, files);
 
             const realtyImages = files.map(file => `${process.env.SERVER_URL}/uploads/realty_images/${file.filename}`);

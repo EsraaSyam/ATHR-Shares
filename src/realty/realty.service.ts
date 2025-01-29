@@ -38,18 +38,18 @@ export class RealtyService {
     }
 
     async findRealtyById(id: number) {
-        const realty = await this.realtysRepository.findOne({ 
+        const realtyData = await this.realtysRepository.findOne({ 
             where: { id, is_active: true }, 
             relations: ['details', 'investmentDetails', 'images', 'priceDetails'] 
         });
 
-        console.log(realty);
-
-        if (!realty) {
+        if (!realtyData) {
             throw new NotFoundException(`لا يوجد عقار بالرقم ${id}`);
         }
-    
-        return realty;
+
+        realtyData.details.features = JSON.parse(realtyData.details.features).join(", ");
+
+        return realtyData;
     }
 
     async findRealtyByIdForInvestment(id: number){
@@ -64,11 +64,10 @@ export class RealtyService {
 
         return realty;
     }
-    
 
     async createRealty(createRealtyRequest: CreateRealtyRequest, files: Express.Multer.File[], backgroundImageUrl: string) {
         let { details, investment_details, images, ...realtyData } = createRealtyRequest;
-
+       
         if (typeof details === 'string') {
             details = JSON.parse(details);
         }
@@ -80,7 +79,6 @@ export class RealtyService {
         if (typeof details.features === 'string') {
             details.features = JSON.stringify(details.features.split(',').map(item => item.trim()));
         }
-
 
         const realtyDetails = new RealtyDetailsEntity();
         Object.assign(realtyDetails, details);
@@ -147,6 +145,11 @@ export class RealtyService {
         details.price = parseOrDefault(details.price);
         realtyData.net_quarter = parseOrDefault(realtyData.net_quarter);
         realtyData.net_return = parseOrDefault(realtyData.net_return);
+        
+        if (realtyData.sale_date !== undefined && realtyData.sale_date !== '') {
+            var formatDate = new Date(realtyData.sale_date);
+        }
+
         investment_details.service_charge = parseOrDefault(investment_details.service_charge);
     
         const realtyDetails = Object.assign(new RealtyDetailsEntity(), realty.details, details);
@@ -159,6 +162,16 @@ export class RealtyService {
     
         if (backgroundImageUrl) {
             realty.background_image.image_url = backgroundImageUrl;
+        }
+
+        if (formatDate instanceof Date && !isNaN(formatDate.getTime())) {
+            realtyData.sale_date = formatDate.toISOString().split("T")[0]; 
+        }
+
+        console.log("realtyData", realtyData);
+
+        if (realtyData.sale_date === '') {
+            realtyData.sale_date = null;
         }
     
         Object.assign(realty, realtyData);
@@ -179,10 +192,6 @@ export class RealtyService {
         return savedRealty;
     }
     
-    
-    
-    
-
     async getAvaliableRealty(): Promise<RealtyResponse[]> {
         const realtys = await this.realtysRepository.find({ where: { is_avaliable: true, is_active: true }, relations: ['details', 'investmentDetails', 'images'] });
 

@@ -11,6 +11,8 @@ import { PaymentModule } from 'src/payment/payment.module';
 import { PaymentEntity } from 'src/payment/entities/payment.entity';
 import { RealtyModule } from 'src/realty/realty.module';
 import { RealtyEntity } from 'src/realty/entities/realty.entity';
+import { PaymentMethodsEntity } from './entities/payment-methods.entity';
+import { SocialMediaEntity } from './entities/social-media.entitiy';
 
 @Module({
   imports: [
@@ -19,7 +21,7 @@ import { RealtyEntity } from 'src/realty/entities/realty.entity';
     InvestmentModule,
     PaymentModule,
     RealtyModule,
-    TypeOrmModule.forFeature([UserEntity, AdminEntity, PaymentEntity, RealtyEntity]),
+    TypeOrmModule.forFeature([UserEntity, AdminEntity, PaymentEntity, RealtyEntity, PaymentMethodsEntity, SocialMediaEntity])
   ],
   providers: [AdminService],
   controllers: [AdminController]

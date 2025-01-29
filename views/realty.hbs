@@ -380,7 +380,10 @@
             try {
                 const response = await fetch(`http://localhost:3000/api/v1/admin/realty?page=${page}&limit=${limit}`);
                 if (!response.ok) {
-                    showToast('Failed to fetch realtys.', 'failure');
+                    const errorData = await response.json();
+                    showToast(errorData.message || 'Failed to fetch realty data.', 'failure');
+                    window.location.href = 'login';
+                    return;
                 }
                 const data = await response.json();
                 console.log(data);
@@ -663,26 +666,7 @@
         margin: 0 10px;
         padding: 8px 20px;
     }
-
-    .toast-message {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #28a745;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 5px;
-        z-index: 1000;
-        transition: opacity 0.5s ease;
-    }
-
-    .toast-message.error {
-        background: #dc3545;
-    }
-
-    .toast-message.fade-out {
-        opacity: 0;
-    }
+   
 </style>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
