@@ -78,4 +78,10 @@ export class DashboardController {
         return { title: 'Social' };
     }
 
+    @Get('/notifications')
+    @Render('notifications')
+    getNotificationsPage(@Res() res) {
+        return { title: 'Notifications' };
+    }
+
 }

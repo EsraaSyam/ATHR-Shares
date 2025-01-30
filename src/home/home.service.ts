@@ -5,7 +5,7 @@ import { UsersService } from 'src/users/user.service';
 import { BannerEntity } from './banner.entity';
 import { Repository } from 'typeorm';
 import { TokenNotValid } from 'src/exceptions/token-not-valid.exception';
-import { UserEntity } from 'src/users/user.entity';
+import { UserEntity } from 'src/users/entities/user.entity';
 import { NotFoundException } from 'src/exceptions/not-found.exception';
 
 @Injectable()

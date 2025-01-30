@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { UserEntity } from './users/user.entity';
+import { UserEntity } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { MailerService } from './mailer/mailer.service';
 import { HomeModule } from './home/home.module';
@@ -35,6 +35,7 @@ import { AcceptLanguageResolver } from 'nestjs-i18n';
 import path from 'path';
 import { PaymentMethodsEntity } from './admin/entities/payment-methods.entity';
 import { SocialMediaEntity } from './admin/entities/social-media.entitiy';
+import { DeviceEntity } from './users/entities/device.entity';
 
 @Module({
   imports: [
@@ -72,7 +73,7 @@ import { SocialMediaEntity } from './admin/entities/social-media.entitiy';
         database: configService.get<string>('DB_NAME'),
         entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity, RealtyImagesEntity, RealtyBackgroundEntity,
           PriceDetailsEntity, PaymentEntity, TokenEntity,InvestmentPaymentDetailsEntity, PaymentForInvestmentEntity, AdminEntity, PaymentMethodsEntity,
-          SocialMediaEntity,
+          SocialMediaEntity, DeviceEntity,
         ],
         synchronize: true,
         ssl: {

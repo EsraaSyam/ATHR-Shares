@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { UserEntity } from "src/users/user.entity";
+import { UserEntity } from "src/users/entities/user.entity";
 import { InstallmentType, PaymentTypes, PaymentMethods, PaymentStatus } from "../payment.enum";
 import { PriceDetailsEntity } from "./price-details.entity";
 import { InvestmentPaymentDetailsEntity } from "src/investment/entities/investment-details.entity";

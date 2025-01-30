@@ -11,7 +11,7 @@ import { ResetPasswordRequest } from './requests/resetPassword.request';
 import { Response } from 'express';
 import { AnyFilesInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/users/user.enum';
+import { Role } from 'src/users/enums/user.enum';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { diskStorage } from 'multer';
 import { extname } from 'path';

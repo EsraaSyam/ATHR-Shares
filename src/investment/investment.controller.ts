@@ -3,7 +3,7 @@ import { InvestmentService } from './investment.service';
 import { AnyFilesInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/users/user.enum';
+import { Role } from 'src/users/enums/user.enum';
 import { GetInvestmentPaymentDetailsRequest } from './requests/get-investment-payment-details.request';
 import { Response } from 'express';
 import { PayInvestmentPaymentRequest } from './requests/pay-investment-payment.request';

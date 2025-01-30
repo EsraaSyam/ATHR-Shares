@@ -8,7 +8,7 @@ import { GetPaymentDetailsRequest } from './requests/get-payment-detils.request'
 import { AuthService } from 'src/auth/auth.service';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/users/user.enum';
+import { Role } from 'src/users/enums/user.enum';
 import { extname } from 'path';
 import { diskStorage } from 'multer';
 

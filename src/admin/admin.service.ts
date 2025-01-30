@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
-import { UserEntity } from 'src/users/user.entity';
+import { UserEntity } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/user.service';
 import { Brackets, ILike, Like, Not, Repository } from 'typeorm';
 import { AdminEntity } from '../auth/entities/admin.entity';
 import * as bycrpt from 'bcrypt';
-import { Role } from 'src/users/user.enum';
+import { Role } from 'src/users/enums/user.enum';
 import { AdminUpdateUserRequest } from './requests/update-user.request';
 import { UserResponse } from './response/user.response';
 import { PaymentEntity } from 'src/payment/entities/payment.entity';
@@ -23,12 +23,17 @@ import { json } from 'body-parser';
 import { CreateSocialMediaRequest } from './requests/create-social-media.request';
 import { SocialMediaEntity } from './entities/social-media.entitiy';
 import { UpdateSocialMediaRequest } from './requests/update-social-media.request';
+import { FirebaseService } from 'src/firebase/firebase.service';
+import { DeviceEntity } from 'src/users/entities/device.entity';
+import { Send } from 'express';
+import { SendNotificationToAllRequest, SendNotificationToSpesificRequest } from './requests/send-notification.request';
 
 @Injectable()
 export class AdminService {
     constructor(
         private readonly authService: AuthService,
         private readonly usersService: UsersService,
+        private readonly firebaseService: FirebaseService,
         @InjectRepository(UserEntity)
         private userRepository: Repository<UserEntity>,
         @InjectRepository(AdminEntity)
@@ -41,6 +46,8 @@ export class AdminService {
         private paymentMethodsRepository: Repository<PaymentMethodsEntity>,
         @InjectRepository(SocialMediaEntity)
         private socialMediaRepository: Repository<SocialMediaEntity>,
+        @InjectRepository(DeviceEntity)
+        private deviceRepository: Repository<DeviceEntity>,
     ) { }
 
     private formatDate(date: Date): string {
@@ -379,6 +386,32 @@ export class AdminService {
         socialMediaEntity.is_active = socialMedia.is_active ;
 
         await this.socialMediaRepository.save(socialMediaEntity);
+    }
+
+    async sendNotificationToSpecificUser(notificationRequest: SendNotificationToSpesificRequest) {
+        const user = await this.userRepository.findOne({ where: { id: notificationRequest.user_id } });
+
+        if (!user) {
+            throw new NotFoundException(`User with id ${notificationRequest.user_id} does not exist`);
+        }
+
+        user.devices.forEach((device) => {
+            this.firebaseService.sendNotification(device.device_token, notificationRequest.title, notificationRequest.body);
+        });
+
+        return true;
+    }
+
+    async sendNotificationToAllUsers(notificationRequest: SendNotificationToAllRequest) {
+        const users = await this.userRepository.find();
+
+        users.forEach((user) => {
+            user.devices.forEach((device) => {
+                this.firebaseService.sendNotification(device.device_token, notificationRequest.title, notificationRequest.body);
+            });
+        });
+
+        return true;
     }
 
     

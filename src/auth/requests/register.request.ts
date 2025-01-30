@@ -1,5 +1,5 @@
 import { IsArray, IsEmail, IsNotEmpty, IsOptional, MaxLength, MinLength, ValidateNested } from "class-validator";
-import { Role } from "src/users/user.enum";
+import { Role } from "src/users/enums/user.enum";
 
 export class RegisterRequest {
     @IsNotEmpty({ message: 'الاسم الكامل مطلوب' })

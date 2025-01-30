@@ -8,7 +8,7 @@ import { extname } from 'path';
 import { fileUploadOptions } from 'src/common/utils/file-upload.util';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/users/user.enum';
+import { Role } from 'src/users/enums/user.enum';
 import { RealtyResponse } from './responses/realty.response';
 import { UpdateRealtyRequest } from './requests/update-realty.request';
 

@@ -1,7 +1,8 @@
 import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Role } from './user.enum';
+import { Role } from '../enums/user.enum';
 import { PaymentEntity } from 'src/payment/entities/payment.entity';
 import { TokenEntity } from 'src/auth/token.entity';
+import { DeviceEntity } from './device.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -55,4 +56,7 @@ export class UserEntity {
 
   @Column({ nullable: true })
   fcm_token: string;
+
+  @OneToMany(() => DeviceEntity, device => device.user)
+  devices: DeviceEntity[];
 }

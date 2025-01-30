@@ -18,6 +18,7 @@ import { CreatePaymentMethodRequest } from './requests/create-payment-methods.re
 import { UpdatePaymentMethodsRequest } from './requests/update-payment-methods.request';
 import { CreateSocialMediaRequest } from './requests/create-social-media.request';
 import { UpdateSocialMediaRequest } from './requests/update-social-media.request';
+import { SendNotificationToAllRequest, SendNotificationToSpesificRequest } from './requests/send-notification.request';
 
 @Controller('admin')
 @UseGuards(SessionAuthGuard)
@@ -336,6 +337,46 @@ export class AdminController {
             }
         );
     }
+
+    @Post('/notifications/send-specific-user')
+    async sendSpecificUserNotification(@Body() notificationRequest: SendNotificationToSpesificRequest, @Res() res: Response) {
+        try {
+            await this.adminService.sendNotificationToSpecificUser(notificationRequest);
+
+            return res.status(200).json(
+                {
+                    message: 'تم ارسال الاشعار بنجاح',
+                }
+            );
+        } catch (error) {
+            return res.status(400).json(
+                {
+                    message: 'حدث خطأ اثناء ارسال الاشعار',
+                }
+            );
+        }
+    } 
+
+    @Post('/notifications/send-all-users')
+    async sendAllUsersNotification(@Body() notificationRequest: SendNotificationToAllRequest, @Res() res: Response) {
+        try {
+            await this.adminService.sendNotificationToAllUsers(notificationRequest);
+
+            return res.status(200).json(
+                {
+                    message: 'تم ارسال الاشعار بنجاح الي جميع المستثمرين',
+                }
+            );
+        } catch (error) {
+            return res.status(400).json(
+                {
+                    message: 'حدث خطأ اثناء ارسال الاشعار',
+                    error,
+                }
+            );
+        }
+    }
+
 
 
 }

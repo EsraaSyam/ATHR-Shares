@@ -13,7 +13,7 @@ import { isValidationOptions, validate } from 'class-validator';
 import { PayInvestmentPaymentRequest } from './requests/pay-investment-payment.request';
 import { PaymentForInvestmentEntity } from './entities/payment-investment.entity';
 import * as moment from 'moment';
-import { UserEntity } from 'src/users/user.entity';
+import { UserEntity } from 'src/users/entities/user.entity';
 import { ConditionalModule } from '@nestjs/config';
 
 

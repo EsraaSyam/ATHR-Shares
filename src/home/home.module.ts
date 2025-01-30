@@ -5,7 +5,7 @@ import { UsersModule } from 'src/users/user.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BannerEntity } from './banner.entity';
-import { UserEntity } from 'src/users/user.entity';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 @Module({
   imports: [UsersModule, AuthModule,

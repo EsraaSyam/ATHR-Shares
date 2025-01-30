@@ -34,7 +34,7 @@ const cleanedServiceAccount = {
     },
     FirebaseService,
   ],
-  exports: ['FIREBASE_ADMIN'],
+  exports: ['FIREBASE_ADMIN', FirebaseService],
   controllers: [FirebaseController],
 })
 export class FirebaseModule {}
