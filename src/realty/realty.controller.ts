@@ -27,12 +27,20 @@ export class RealtyController {
         const realty = await this.realtyService.findRealtyById(id); 
 
         return res.status(200).json({
-            message: 'تم بنجاج',
+            message: 'تم بنجاح',
             data: realty,
         });
     }
 
+    @Get('get-realty-by-id-dashboard/:id')
+    async getSoldRealtyById(@Param('id') id: number, @Res() res: Response) {
+        const realty = await this.realtyService.findRealtyForDahboardById(id);
 
+        return res.status(200).json({
+            message: 'تم بنجاح',
+            data: realty,
+        });
+    }
 
     @Post('/create')
     @UseInterceptors(

@@ -27,7 +27,7 @@ export class UpdateRealtyRequest {
   down_payment?: number;
 
   @IsOptional()
-  is_avaliable: boolean = true;
+  is_available: boolean = true;
 
   @IsOptional()
   is_active: boolean = true;

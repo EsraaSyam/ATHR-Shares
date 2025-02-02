@@ -238,6 +238,17 @@ export class AdminController {
         );
     }
 
+    @Get('/sold-realty')
+    async getAllSoldRealtys(@Res() res: Response, @Query('page') page: number, @Query('limit') limit: number) {
+        const realtys = await this.adminService.getSoldRealtys(page, limit);
+        return res.status(200).json(
+            {
+                message: 'تم جلب البيانات بنجاح',
+                data: realtys,
+            }
+        );
+    }
+
     @Post('/payment_methods')
     @UseInterceptors(AnyFilesInterceptor())
     async addPaymentMethod(@Body() createPaymrntMethodRequest : CreatePaymentMethodRequest, @Res() res: Response) {
@@ -341,6 +352,8 @@ export class AdminController {
     @Post('/notifications/send-specific-user')
     async sendSpecificUserNotification(@Body() notificationRequest: SendNotificationToSpesificRequest, @Res() res: Response) {
         try {
+
+            console.log(notificationRequest);
             await this.adminService.sendNotificationToSpecificUser(notificationRequest);
 
             return res.status(200).json(
@@ -375,6 +388,54 @@ export class AdminController {
                 }
             );
         }
+    }
+
+    @Get('/charts/users')
+    async getUsersChartData(@Res() res: Response) {
+        const chartData = await this.adminService.getUsersCount();
+
+        return res.status(200).json(
+            {
+                message: 'تم بنجاح',
+                data: chartData,
+            }
+        );
+    }
+
+    @Get('/charts/payments')
+    async getPaymentsChartData(@Res() res: Response) {
+        const chartData = await this.adminService.getPaymentMethodsCount();
+
+        return res.status(200).json(
+            {
+                message: 'تم بنجاح',
+                data: chartData,
+            }
+        );
+    }
+
+    @Get('/charts/installment')
+    async getInstallmentChartData(@Res() res: Response) {
+        const chartData = await this.adminService.getInstallmentMethodsCount();
+
+        return res.status(200).json(
+            {
+                message: 'تم بنجاح',
+                data: chartData,
+            }
+        );
+    }
+
+    @Get('/charts/realty')
+    async getRealtyChartData(@Res() res: Response) {
+        const chartData = await this.adminService.getRealtyCount();
+
+        return res.status(200).json(
+            {
+                message: 'تم بنجاح',
+                data: chartData,
+            }
+        );
     }
 
 

@@ -84,4 +84,10 @@ export class DashboardController {
         return { title: 'Notifications' };
     }
 
+    @Get('/sold-realty')
+    @Render('sold_realty')
+    getSoldRealtyPage(@Res() res) {
+        return { title: 'Sold Realty' };
+    }
+
 }

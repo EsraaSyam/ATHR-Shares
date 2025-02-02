@@ -10,7 +10,7 @@ export class RealtyResponse {
     net_quarter?: number;
     sale_date?: Date;
     net_return?: number;
-    is_avaliable: boolean;
+    is_available: boolean;
     is_active: boolean;
     details: RealtyDetailsResponss;
     investmentDetails: InvestmentDetailsResponses;
@@ -21,7 +21,7 @@ export class RealtyResponse {
         this.id = realty.id;
         this.title = realty.title;
         this.owner_name = realty.owner_name;
-        this.is_avaliable = realty.is_avaliable;
+        this.is_available = realty.is_available;
         this.is_active = realty.is_active;
 
 

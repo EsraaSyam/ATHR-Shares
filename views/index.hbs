@@ -1,3 +1,223 @@
-{{#> layout}}
+<div class="page-body">
+    <div class="container">
+        <!-- Section for Cards -->
+        <div class="row cards-container">
+            <div class="col-sm-3">
+                <div class="stat-card">
+                    <h5>Users</h5>
+                    <span id="users-count">0</span>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="stat-card">
+                    <h5>Payments</h5>
+                    <span id="payments-count">0</span>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="stat-card">
+                    <h5>Installments</h5>
+                    <span id="installment-count">0</span>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="stat-card">
+                    <h5>Realty</h5>
+                    <span id="realty-count">0</span>
+                </div>
+            </div>
+        </div>
 
-{{/layout}}
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="chart-box">
+                    <h5>Users Analytics</h5>
+                    <canvas id="chart1"></canvas>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="chart-box">
+                    <h5>Payments Analytics</h5>
+                    <canvas id="chart2"></canvas>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="chart-box">
+                    <h5>Installment Analytics</h5>
+                    <canvas id="chart3"></canvas>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="chart-box">
+                    <h5>Realty Analytics</h5>
+                    <canvas id="chart4"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        margin-top: 20px;
+    }
+
+    .row {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .col-sm-3 {
+        width: 23%;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        text-align: center;
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .stat-card h5 {
+        font-size: 14px;
+        font-weight: bold;
+        color: #4FBFAB;
+        margin-bottom: 10px;
+    }
+
+    .chart-box {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        position: relative;
+        text-align: center;
+    }
+
+    .chart-box h5 {
+        position: absolute;
+        top: 10px;
+        left: 15px;
+        margin: 0;
+        font-size: 14px;
+        font-weight: bold;
+        color: #4FBFAB;
+    }
+
+    canvas {
+        width: 100% !important;
+        height: auto !important;
+        margin-top: 25px;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const apiUrls = {
+        chart1: "http://localhost:3000/api/v1/admin/charts/users",
+        chart2: "http://localhost:3000/api/v1/admin/charts/payments",
+        chart3: "http://localhost:3000/api/v1/admin/charts/installment",
+        chart4: "http://localhost:3000/api/v1/admin/charts/realty",
+    };
+
+    const chartElements = {
+        chart1: document.getElementById("chart1").getContext("2d"),
+        chart2: document.getElementById("chart2").getContext("2d"),
+        chart3: document.getElementById("chart3").getContext("2d"),
+        chart4: document.getElementById("chart4").getContext("2d"),
+    };
+
+    const countElements = {
+        users: document.getElementById("users-count"),
+        payments: document.getElementById("payments-count"),
+        installment: document.getElementById("installment-count"),
+        realty: document.getElementById("realty-count"),
+    };
+
+    async function updateCounts() {
+        const usersData = await fetchChartData(apiUrls.chart1);
+        const paymentsData = await fetchChartData(apiUrls.chart2);
+        const installmentData = await fetchChartData(apiUrls.chart3);
+        const realtyData = await fetchChartData(apiUrls.chart4);
+
+        if (usersData) {
+            const totalUsers = Object.values(usersData).reduce((acc, curr) => acc + curr, 0);
+            countElements.users.textContent = totalUsers;
+        }
+
+        if (paymentsData) {
+            const totalPayments = Object.values(paymentsData).reduce((acc, curr) => acc + curr, 0);
+            countElements.payments.textContent = totalPayments;
+        }
+
+        if (installmentData) {
+            const totalInstallment = Object.values(installmentData).reduce((acc, curr) => acc + curr, 0);
+            countElements.installment.textContent = totalInstallment;
+        }
+
+        if (realtyData) {
+            const totalRealty = Object.values(realtyData).reduce((acc, curr) => acc + curr, 0);
+            countElements.realty.textContent = totalRealty;
+        }
+    }
+
+    updateCounts();
+
+    async function fetchChartData(url) {
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                showToast(errorData.message || "Failed to fetch data.", "failure");
+            }
+            const result = await response.json();
+            return result.data;
+        } catch (error) {
+            showToast(error.message || "Failed to fetch data.", "failure");
+        }
+    }
+
+    async function createChart(chartId, chartType) {
+        const data = await fetchChartData(apiUrls[chartId]);
+
+        if (!data) return;
+
+        new Chart(chartElements[chartId], {
+            type: chartType,
+            data: {
+                labels: Object.keys(data),
+                datasets: [
+                    {
+                        label: "Data",
+                        data: Object.values(data),
+                        backgroundColor: [
+                            "rgba(79, 191, 171, 0.7)",
+                            "rgba(255, 200, 87, 0.7)",
+                            "rgba(233, 114, 76, 0.7)",
+                            "rgba(59, 105, 120, 0.7)",
+                        ],
+                        borderColor: [
+                            "rgba(79, 191, 171, 1)",
+                            "rgba(255, 200, 87, 1)",
+                            "rgba(233, 114, 76, 1)",
+                            "rgba(59, 105, 120, 1)",
+                        ],
+                        borderWidth: 1,
+                    },
+                ],
+            },
+        });
+
+    }
+
+    createChart("chart1", "doughnut");
+    createChart("chart2", "doughnut");
+    createChart("chart3", "doughnut");
+    createChart("chart4", "doughnut");
+</script>

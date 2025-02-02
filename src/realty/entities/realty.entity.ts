@@ -11,7 +11,7 @@ export class RealtyEntity {
     id: number;
 
     @Column({ nullable: true, default: true })
-    is_avaliable?: boolean = true;
+    is_available?: boolean = true;
 
     @Column({ nullable: true, default: true })
     is_active?: boolean = true;

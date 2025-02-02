@@ -1,0 +1,74 @@
+{{#> layout}}
+
+<div class="page-body">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>Send Notification</h5>
+            </div>
+            <div class="card-body">
+                <form id="pushNotificationForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="notificationTitle" class="form-label">Title</label>
+                            <textarea id="notificationTitle" class="form-control" placeholder="Enter notification title"
+                                required></textarea>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="notificationBody" class="form-label">Body</label>
+                            <textarea id="notificationBody" class="form-control" placeholder="Enter notification body"
+                                required></textarea>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center mt-3">
+                        <button type="submit" class="btn btn-primary">Send Notification</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('pushNotificationForm');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('notificationTitle').value.trim();
+            const body = document.getElementById('notificationBody').value.trim();
+
+            if (!title || !body) {
+                showToast('Please fill out both fields.', 'failure');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/v1/admin/notifications/send-all-users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title,
+                        body
+                    })
+                });
+
+                if (response.ok) {
+                    showToast('Notification sent successfully!', 'success');
+                    form.reset();
+                } else {
+                    const errorData = await response.json();
+                    showToast(errorData.message || 'Failed to send notification.', 'failure');
+                }
+            } catch (error) {
+                console.error('Error sending notification:', error);
+                showToast('An error occurred. Please try again.', 'failure');
+            }
+        });
+    });
+</script>
+
+{{/layout}}

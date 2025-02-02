@@ -80,7 +80,31 @@
 
 </div>
 
-
+<div class="modal fade" id="notifyUserModal" tabindex="-1" aria-labelledby="notifyUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="notifyUserModalLabel">Send Notification</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="notifyUserForm" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="notificationTitle" class="form-label">Title</label>
+            <input type="text" id="notificationTitle" class="form-control" placeholder="Enter notification title"
+              required>
+          </div>
+          <div class="mb-3">
+            <label for="notificationMessage" class="form-label">Message</label>
+            <textarea id="notificationMessage" class="form-control" placeholder="Enter notification message"
+              required></textarea>
+          </div>
+          <button type="button" id="sendNotificationButton" class="btn btn-primary">Send Notification</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 <script>
@@ -195,14 +219,18 @@
               <td>${user.phone_number || 'N/A'}</td>
               <td>${user.is_verified === true ? 'Yes' : 'No'}</td>
               <td><img src="/assets/images/logo/logo.png" alt="Profile Photo" style="width: 100px;"></td>
-              <td>
-                <button class="btn px-4" style="background-color: #006A4E; color: white;" data-id="${user.id}" onclick="editUser(this)">
-                  Edit
-                </button>
-               <button class="btn btn-danger px-3" data-id="${user.id}" onclick="deleteUser(this)">
-                  Delete
-                </button>
-              </td>
+             <td>
+    <button class="btn px-4" style="background-color: #006A4E; color: white;" data-id="${user.id}" onclick="editUser(this)">
+        Edit
+    </button>
+    <button class="btn btn-danger px-3" data-id="${user.id}" onclick="deleteUser(this)">
+        Delete
+    </button>
+    <button class="btn px-4" style="background-color: #7A91C4; color: white;" data-id="${user.id}" onclick="notifyUser(this)">
+        Notify
+    </button>
+</td>
+
             </tr>
           `;
           userTableBody.insertAdjacentHTML('beforeend', row);
@@ -215,6 +243,50 @@
         showToast('An error occurred while fetching users.', 'failure');
       }
     }
+
+    window.notifyUser = async function (button) {
+      const userId = button.getAttribute('data-id');
+      const notifyUserModal = new bootstrap.Modal(document.getElementById('notifyUserModal'));
+
+      notifyUserModal.show();
+
+      const sendNotificationButton = document.getElementById('sendNotificationButton');
+      sendNotificationButton.addEventListener('click', async () => {
+        const notificationTitle = document.getElementById('notificationTitle').value.trim();
+        const notificationMessage = document.getElementById('notificationMessage').value.trim();
+
+        if (!notificationTitle || !notificationMessage) {
+          showToast('Please fill in all fields.', 'failure');
+          return;
+        }
+
+        try {
+          const response = await fetch(`http://localhost:3000/api/v1/admin/notifications/send-specific-user`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              user_id: userId,
+              title: notificationTitle,
+              body: notificationMessage,
+            }),
+          });
+
+          if (response.ok) {
+            showToast('Notification sent successfully!', 'success');
+            notifyUserModal.hide();
+          } else {
+            const errorData = await response.json();
+            showToast(errorData.message || 'Failed to send notification.', 'failure');
+          }
+        } catch (error) {
+          console.error('Error sending notification:', error);
+          showToast('An error occurred while sending the notification.', 'failure');
+        }
+      });
+    };
+
 
     function updatePaginationControls(currentPage, numberOfPages) {
       paginationControls.innerHTML = '';

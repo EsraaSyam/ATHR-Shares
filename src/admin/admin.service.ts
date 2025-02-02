@@ -10,7 +10,7 @@ import { Role } from 'src/users/enums/user.enum';
 import { AdminUpdateUserRequest } from './requests/update-user.request';
 import { UserResponse } from './response/user.response';
 import { PaymentEntity } from 'src/payment/entities/payment.entity';
-import { InstallmentType } from 'src/payment/payment.enum';
+import { InstallmentType, PaymentTypes } from 'src/payment/payment.enum';
 import { isAscii } from 'buffer';
 import { RegisterAdminRequest } from './requests/register-admin-request';
 import { UpdatePaymentRequest } from './requests/update-payment.request';
@@ -27,6 +27,7 @@ import { FirebaseService } from 'src/firebase/firebase.service';
 import { DeviceEntity } from 'src/users/entities/device.entity';
 import { Send } from 'express';
 import { SendNotificationToAllRequest, SendNotificationToSpesificRequest } from './requests/send-notification.request';
+import { constants } from 'vm';
 
 @Injectable()
 export class AdminService {
@@ -289,7 +290,28 @@ export class AdminService {
             order: { id: 'DESC' },
             skip: (page - 1) * limit,
             take: limit,
-            where: { is_active: true },
+            where: { is_active: true, is_available: true },
+        });
+    
+        if (!realtys.length) {
+            throw new NotFoundException('لا توجد عقارات');
+        }
+    
+        return {
+            data: realtys,
+            total_count: total,
+            numberOfPages: Math.ceil(total / limit),
+            currentPage: page,
+        };
+    }
+
+    async getSoldRealtys(page: number = 1, limit: number = 10) {
+        const [realtys, total] = await this.realtyRepository.findAndCount({
+            relations: ['details', 'investmentDetails', 'images', 'priceDetails'],
+            order: { id: 'DESC' },
+            skip: (page - 1) * limit,
+            take: limit,
+            where: { is_available: false },
         });
     
         if (!realtys.length) {
@@ -414,5 +436,48 @@ export class AdminService {
         return true;
     }
 
+    // charts
+
+    async getRealtyCount() {
+        const soldRealty = await this.realtyRepository.count({ where: { is_available : false } });
+        const availableRealty = await this.realtyRepository.count({ where: { is_available : true } });
+
+        return {
+            soldRealty,
+            availableRealty,
+        }
+    }
+
+    async getPaymentMethodsCount() {
+        const cash = await this.paymentRepository.count( { where: { payment_type: PaymentTypes.CASH } });
+        const installment = await this.paymentRepository.count( { where: { payment_type: PaymentTypes.INSTALLMENT } });
+
+        return {
+            cash,
+            installment,
+        }
+    }
+
+    async getInstallmentMethodsCount() {
+        const month_12 = await this.paymentRepository.count( { where: { payment_type: PaymentTypes.INSTALLMENT, installment_type: InstallmentType.Month_12 } });
+        const month_24 = await this.paymentRepository.count( { where: { payment_type: PaymentTypes.INSTALLMENT, installment_type: InstallmentType.Month_24 } });
+        const month_18 = await this.paymentRepository.count( { where: { payment_type: PaymentTypes.INSTALLMENT, installment_type: InstallmentType.Month_18 } });
+
+        return {
+            month_12,
+            month_18,
+            month_24,
+        }
+    }
+
+    async getUsersCount() {
+        const users = await this.userRepository.count({where: {role: Not(Role.GUEST)}});
+        const guests = await this.userRepository.count({where: {role: Role.GUEST}});
+
+        return {
+            users,
+            guests,
+        }
+    }
     
 }

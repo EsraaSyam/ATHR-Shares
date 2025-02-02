@@ -108,10 +108,23 @@
         </div>
 
         <div class="row">
-            <div class="col-md-12 mb-3">
+            <div class="col-md-6 mb-3">
                 <label for="editImages" class="form-label">Upload Images*</label>
                 <input type="file" id="editImages" class="form-control" multiple>
             </div>
+        </div>
+
+        <div class="row">
+
+            <div class="form-check col-md-6 mb-3">
+                <input type="checkbox" id="realtyIsAvaliable" class="form-check-input">
+                <label for="realtyIsAvaliable" class="form-check-label"> Is Avaliable </label>
+            </div>
+            <div class="form-check col-md-6 mb-3">
+                <input type="checkbox" id="realtyIsActive" class="form-check-input">
+                <label for="realtyIsActive" class="form-check-label"> Is Active </label>
+            </div>
+
         </div>
 
         <button type="button" id="saveEditRealtyButton" class="btn btn-primary">Save Changes</button>
@@ -143,7 +156,7 @@
                 throw new Error('Missing realty ID');
             }
 
-            const response = await fetch(`http://localhost:3000/api/v1/realty/get-realty-by-id/${id}`);
+            const response = await fetch(`http://localhost:3000/api/v1/realty/get-realty-by-id-dashboard/${id}`);
 
             console.log(response);
             if (!response.ok) {
@@ -154,6 +167,10 @@
 
             realty = realty.data;
 
+            console.log('realty:', realty);
+
+            console.log("type:", typeof realty.is_available);
+
             const saleDate = new Date(realty.sale_date);
             const formattedSaleDate = saleDate.toISOString().split('T')[0]
 
@@ -162,8 +179,19 @@
             document.getElementById('editRealtyTitle').value = realty.title || '';
             document.getElementById('editRealtyOwnerName').value = realty.owner_name || '';
             document.getElementById('editRealtySaleDate').value = formattedSaleDate || '';
+            document.getElementById('realtyIsAvaliable').checked = realty.is_available;
+            document.getElementById('realtyIsActive').checked = realty.is_active;
             document.getElementById('editRealtyLatitude').value = realty.details ? realty.details.latitude : '';
             document.getElementById('editRealtyLongitude').value = realty.details ? realty.details.longitude : '';
+
+            console.log(document.getElementById('realtyIsAvaliable').value);
+            console.log(document.getElementById('realtyIsActive').value);
+
+            console.log('realty details:', realty.is_available);
+            console.log('realty details:', realty.is_active);
+
+
+
 
             // Handle missing fields in realty details
             document.getElementById('editRealtyBathroomCount').value = realty.details ? realty.details.bathroom_count : '';
@@ -187,6 +215,11 @@
                 const netQuarter = document.getElementById('editNetQuarter').value;
                 const netReturn = document.getElementById('editNetReturn').value;
                 const saleDate = document.getElementById('editRealtySaleDate').value;
+                const realtyIsAvaliable = document.getElementById('realtyIsAvaliable').checked ? true : false;
+                const realtyIsActive = document.getElementById('realtyIsActive').checked ? true : false;
+
+                console.log('realtyIsAvaliable:', realtyIsAvaliable);
+                console.log('realtyIsActive:', realtyIsActive);
 
                 console.log('saleDate:', saleDate);
                 console.log("type:" + typeof saleDate);
@@ -209,13 +242,11 @@
                     service_charge: document.getElementById('editInvestmentServiceCharge').value,
                 };
 
-                // Check if any required field is empty
                 if (!title || !ownerName || !details.area || !details.type || !details.price || !details.features || !details.longitude || !details.latitude || !details.net_share_count || !investmentDetails.net_share_price || !investmentDetails.down_payment || !investmentDetails.service_charge) {
                     showToast('Please fill all required fields.', 'failure');
                     return;
                 }
 
-                // Check if numeric fields are valid numbers
                 if (isNaN(details.area) || isNaN(details.price) || isNaN(details.net_share_count) || isNaN(investmentDetails.net_share_price) || isNaN(investmentDetails.down_payment) || isNaN(investmentDetails.service_charge)) {
                     showToast('Please enter valid numbers in numeric fields.', 'failure');
                     return;
@@ -225,6 +256,8 @@
                 const formData = new FormData();
                 formData.append('title', title);
                 formData.append('owner_name', ownerName);
+                formData.append('is_available', realtyIsAvaliable);
+                formData.append('is_active', realtyIsActive);
                 formData.append('net_quarter', netQuarter);
                 formData.append('net_return', netReturn);
                 formData.append('sale_date', saleDate);
@@ -245,7 +278,7 @@
 
                     const result = await response.json();
                     if (response.ok) {
-                        window.location.href = '/dashboard/realty';
+                        {{!-- window.location.href = '/dashboard/realty'; --}}
                         showToast('Realty updated successfully!', 'success');
                     } else {
                         showToast(result.message, 'failure');
