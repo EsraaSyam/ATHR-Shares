@@ -9,6 +9,7 @@ export class RealtyDetailsResponss {
     features: string[];
     longitude: string;
     latitude: string;
+    net_share_count: number;
 
     constructor(details: any) {
         this.id = details.id;
@@ -21,5 +22,6 @@ export class RealtyDetailsResponss {
         this.features = details.features; 
         this.longitude = details.longitude;
         this.latitude = details.latitude;
+        this.net_share_count = details.net_share_count;
     }
 }

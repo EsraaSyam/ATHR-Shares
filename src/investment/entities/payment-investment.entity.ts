@@ -16,4 +16,7 @@ export class PaymentForInvestmentEntity {
 
     @ManyToOne(() => InvestmentPaymentDetailsEntity, (investmentPaymentDetails) => investmentPaymentDetails.payments, { onDelete: 'CASCADE', eager: false })
     investmentPaymentDetails: InvestmentPaymentDetailsEntity;
+
+    @Column({ type: 'date', nullable: true })
+    created_at: Date = new Date();
 }

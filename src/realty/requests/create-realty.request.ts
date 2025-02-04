@@ -27,7 +27,7 @@ export class CreateRealtyRequest {
   down_payment?: number;
 
   @IsOptional()
-  is_avaliable: boolean;
+  is_available: boolean;
 
   @IsOptional()
   is_active: boolean;

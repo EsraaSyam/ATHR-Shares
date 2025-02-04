@@ -1,0 +1,121 @@
+{{#> layout}}
+
+<div class="page-body">
+  <div class="container">
+    <h2 class="text-center my-4">Edit User</h2>
+    <form id="editUserForm">
+      <div class="mb-3">
+        <label for="userFullName" class="form-label">Full Name</label>
+        <input type="text" id="userFullName" class="form-control" placeholder="Enter full name">
+      </div>
+      <div class="mb-3">
+        <label for="userEmail" class="form-label">Email</label>
+        <input type="email" id="userEmail" class="form-control" placeholder="Enter email">
+      </div>
+      <div class="mb-3">
+        <label for="userPhoneNumber" class="form-label">Phone Number</label>
+        <input type="text" id="userPhoneNumber" class="form-control" placeholder="Enter phone number">
+      </div>
+      <div class="mb-3">
+        <label for="userPassword" class="form-label">Password</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="icon-lock"></i></span>
+          <input type="password" id="userPassword" class="form-control" placeholder="Enter password">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-check mb-3">
+        <input type="checkbox" id="userIsCompleted" class="form-check-input">
+        <label for="userIsCompleted" class="form-check-label">Is Completed</label>
+      </div>
+      <div class="form-check mb-3">
+        <input type="checkbox" id="userIsVerified" class="form-check-input">
+        <label for="userIsVerified" class="form-check-label">Is Verified</label>
+      </div>
+      <button type="button" id="saveUserButton" class="btn btn-primary">Save</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function showToast(message, type) {
+    const toastContainer = document.createElement('div');
+    toastContainer.className = `toast-message ${type}`;
+    toastContainer.textContent = message;
+    document.body.appendChild(toastContainer);
+    setTimeout(() => {
+      toastContainer.classList.add('fade-out');
+      setTimeout(() => {
+        toastContainer.remove();
+      }, 500);
+    }, 3000);
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const userId = new URLSearchParams(window.location.search).get('id');
+    const fullNameInput = document.getElementById('userFullName');
+    const emailInput = document.getElementById('userEmail');
+    const phoneNumberInput = document.getElementById('userPhoneNumber');
+    const passwordInput = document.getElementById('userPassword');
+    const isCompletedCheckbox = document.getElementById('userIsCompleted');
+    const isVerifiedCheckbox = document.getElementById('userIsVerified');
+    const saveButton = document.getElementById('saveUserButton');
+
+    try {
+      const response = await fetch(`${BASE_URL}/admin/users/${userId}`);
+      if (!response.ok) throw new Error('Failed to fetch user data.');
+      const userData = await response.json();
+      const user = userData.data;
+
+      fullNameInput.value = user.full_name;
+      emailInput.value = user.email;
+      phoneNumberInput.value = user.phone_number || '';
+      passwordInput.value = '';
+      isCompletedCheckbox.checked = user.is_completed;
+      isVerifiedCheckbox.checked = user.is_verified;
+    } catch (error) {
+      const message = error.message;
+      console.error('Error fetching user data:', message);
+      showToast('An error occurred while fetching user data.', 'failure');
+    }
+
+    saveButton.addEventListener('click', async () => {
+      
+      if (passwordInput.value.length < 6 && passwordInput.value.length > 0) {
+        showToast('Password must be at least 8 characters long.', 'failure');
+        return;
+      }
+      const updatedUser = {
+        full_name: fullNameInput.value,
+        email: emailInput.value,
+        phone_number: phoneNumberInput.value,
+        password: passwordInput.value,
+        is_completed: isCompletedCheckbox.checked,
+        is_verified: isVerifiedCheckbox.checked,
+      };
+
+      try {
+        const response = await fetch(`${BASE_URL}/admin/users/${userId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedUser),
+        });
+
+        if (response.ok) {
+          showToast('User updated successfully!', 'success');
+          setTimeout(() => { window.location.href = 'users'; }, 500);
+        } else {
+          const message = await response.text();
+          console.error('Failed to update user:', message);
+          showToast('Failed to update user.', 'failure');
+        }
+      } catch (error) {
+        console.error('Error updating user:', error);
+        showToast('An error occurred while updating.', 'failure');
+      }
+    });
+  });
+</script>
+
+{{/layout}}

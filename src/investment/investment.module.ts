@@ -9,7 +9,7 @@ import { RealtyModule } from 'src/realty/realty.module';
 import { RealtyEntity } from 'src/realty/entities/realty.entity';
 import { UsersService } from 'src/users/user.service';
 import { UsersModule } from 'src/users/user.module';
-import { UserEntity } from 'src/users/user.entity';
+import { UserEntity } from 'src/users/entities/user.entity';
 import { PaymentForInvestmentEntity } from './entities/payment-investment.entity';
 
 @Module({

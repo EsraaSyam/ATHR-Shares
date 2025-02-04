@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { UserEntity } from './users/user.entity';
+import { UserEntity } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { MailerService } from './mailer/mailer.service';
 import { HomeModule } from './home/home.module';
@@ -26,9 +26,34 @@ import { JwtModule } from '@nestjs/jwt';
 import { InvestmentModule } from './investment/investment.module';
 import { InvestmentPaymentDetailsEntity } from './investment/entities/investment-details.entity';
 import { PaymentForInvestmentEntity } from './investment/entities/payment-investment.entity';
+import { AdminEntity } from './auth/entities/admin.entity';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { CookieResolver, HeaderResolver, QueryResolver } from 'nestjs-i18n';
+import { join } from 'path';
+import { I18nModule } from 'nestjs-i18n';
+import { AcceptLanguageResolver } from 'nestjs-i18n';
+import path from 'path';
+import { PaymentMethodsEntity } from './admin/entities/payment-methods.entity';
+import { SocialMediaEntity } from './admin/entities/social-media.entitiy';
+import { DeviceEntity } from './users/entities/device.entity';
+import { NotificationsEntity } from './firebase/entites/notifications.entity';
 
 @Module({
   imports: [
+    I18nModule.forRoot({
+      fallbackLanguage: 'en',
+      loaderOptions: {
+        path: path.join(__dirname, '/i18n/'),
+        watch: true,
+      },
+      resolvers: [
+        { use: QueryResolver, options: ['lang'] },
+        AcceptLanguageResolver,
+        new HeaderResolver(['x-lang']),
+      ],
+    }),
+    
+
     JwtModule.register({
       secret: 'sira',
     }),
@@ -48,9 +73,13 @@ import { PaymentForInvestmentEntity } from './investment/entities/payment-invest
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity, RealtyImagesEntity, RealtyBackgroundEntity,
-          PriceDetailsEntity, PaymentEntity, TokenEntity,InvestmentPaymentDetailsEntity, PaymentForInvestmentEntity
+          PriceDetailsEntity, PaymentEntity, TokenEntity,InvestmentPaymentDetailsEntity, PaymentForInvestmentEntity, AdminEntity, PaymentMethodsEntity,
+          SocialMediaEntity, DeviceEntity, NotificationsEntity, 
         ],
         synchronize: true,
+        ssl: {
+          rejectUnauthorized: false, 
+        }
       }),
 
       inject: [ConfigService],
@@ -63,6 +92,7 @@ import { PaymentForInvestmentEntity } from './investment/entities/payment-invest
     FirebaseModule,
     AdminModule,
     InvestmentModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailerService],

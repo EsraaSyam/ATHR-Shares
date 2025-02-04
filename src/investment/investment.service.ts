@@ -13,7 +13,8 @@ import { isValidationOptions, validate } from 'class-validator';
 import { PayInvestmentPaymentRequest } from './requests/pay-investment-payment.request';
 import { PaymentForInvestmentEntity } from './entities/payment-investment.entity';
 import * as moment from 'moment';
-import { UserEntity } from 'src/users/user.entity';
+import { UserEntity } from 'src/users/entities/user.entity';
+import { ConditionalModule } from '@nestjs/config';
 
 
 @Injectable()
@@ -24,9 +25,6 @@ export class InvestmentService {
 
         @InjectRepository(PaymentEntity)
         private paymentsRepository: Repository<PaymentEntity>,
-
-        // @InjectRepository(PriceDetailsEntity)
-        // private priceDetailsRepository: Repository<PriceDetailsEntity>,
 
         @InjectRepository(UserEntity)
         private usersRepository: Repository<UserEntity>,
@@ -51,18 +49,37 @@ export class InvestmentService {
         const realty = await this.realtyService.findRealtyById(body.realty_id);
 
 
+        if(!realty) {
+            throw new NotFoundException(`Realty with ID ${body.realty_id} not found
+            `);
+        }
+        const paymentDetails = await this.paymentsRepository.findOneBy({ user_id: body.user_id, realty_id: body.realty_id });
+
+
         const user = await this.userService.findById(body.user_id);
 
         const investmentPaymentDetails = new InvestmentPaymentDetailsEntity();
 
         investmentPaymentDetails.unit_price = realty.investmentDetails.unit_price;
+
         investmentPaymentDetails.down_payment = realty.investmentDetails.down_payment;
+
         const paymentForRealty = user.payments.find(payment => payment.realty_id === realty.id);
+
         const monthly_installment = paymentForRealty.price_details.monthly_installment;
-        investmentPaymentDetails.paid_installment = 0; // must be edit
+
+        if (paymentDetails.investment_payment_details)
+            investmentPaymentDetails.paid_installment = paymentDetails.investment_payment_details.paid_installment;
+        else investmentPaymentDetails.paid_installment = 0;
+
         investmentPaymentDetails.next_installment_price = monthly_installment;
-        investmentPaymentDetails.next_installment_date = paymentForRealty.next_payment_date;
-        // console.log('paymentForRealty', paymentForRealty);
+
+        let newDate = paymentForRealty.next_payment_date;
+
+        newDate.setDate(newDate.getDate() + 30);
+
+        investmentPaymentDetails.next_installment_date = newDate;
+    
         investmentPaymentDetails.total_price = monthly_installment;
 
         investmentPaymentDetails.payment = paymentForRealty;
@@ -80,18 +97,38 @@ export class InvestmentService {
     async getInvestmentPaymentDetailsForNetShare(body: GetInvestmentPaymentDetailsRequest) {
         const realty = await this.realtyService.findRealtyById(body.realty_id);
 
+        if (!realty) {
+            throw new NotFoundException(`Realty with ID ${body.realty_id} not found`);
+        }
+
+        const paymentDetails = await this.paymentsRepository.findOneBy({ user_id: body.user_id, realty_id: body.realty_id });
+
         const user = await this.userService.findById(body.user_id);
 
         const investmentPaymentDetails = new InvestmentPaymentDetailsEntity();
 
         investmentPaymentDetails.unit_price = realty.investmentDetails.unit_price;
+
         const paymentForRealty = user.payments.find(payment => payment.realty_id === realty.id);
+
         const monthly_installment = paymentForRealty.price_details.monthly_installment;
+
         investmentPaymentDetails.net_share_count = paymentForRealty.net_share_count;
+
         investmentPaymentDetails.net_share_price = realty.investmentDetails.net_share_price;
-        investmentPaymentDetails.paid_installment = 0; // must be edit
+
+        if (paymentDetails.investment_payment_details)
+            investmentPaymentDetails.paid_installment = paymentDetails.investment_payment_details.paid_installment;
+        else investmentPaymentDetails.paid_installment = 0;
+
         investmentPaymentDetails.next_installment_price = monthly_installment;
-        investmentPaymentDetails.next_installment_date = paymentForRealty.next_payment_date;
+
+        let newDate = paymentForRealty.next_payment_date;
+
+        newDate.setDate(newDate.getDate() + 30);
+
+        investmentPaymentDetails.next_installment_date = newDate;
+
         investmentPaymentDetails.total_price = monthly_installment;
 
         investmentPaymentDetails.payment = paymentForRealty;
@@ -104,7 +141,7 @@ export class InvestmentService {
             next_installment_price: investmentPaymentDetails.next_installment_price,
             next_installment_date: this.formatDate(investmentPaymentDetails.next_installment_date),
             total_price: investmentPaymentDetails.total_price,
-            // rem_net_share = realty.investmentDetails.
+            rem_net_share: realty.details.net_share_count,
         }
     }
 
@@ -127,6 +164,11 @@ export class InvestmentService {
 
     async payInvestmentPaymentForUnits(body: PayInvestmentPaymentRequest) {
         const realty = await this.realtyService.findRealtyById(body.realty_id);
+
+        if (!realty) {
+            throw new NotFoundException(`Realty with ID ${body.realty_id} not found
+            `);
+        }
 
         const user = await this.usersRepository.findOne({
             where: { id: body.user_id.toString() },
@@ -173,6 +215,8 @@ export class InvestmentService {
 
             userPayment.investment_payment_details = newInvestmentPaymentDetails;
 
+            userPayment.next_payment_date = newInvestmentPaymentDetails.next_installment_date;
+
             const user3 = await this.paymentsRepository.save(userPayment);
 
             user.payments.find(payment => payment.realty_id === realty.id).investment_payment_details = user3.investment_payment_details;
@@ -189,6 +233,10 @@ export class InvestmentService {
             const nextInstallmentDate = new Date(investmentPaymentDetails.next_installment_date); 
 
             nextInstallmentDate.setDate(nextInstallmentDate.getDate() + 30);
+
+            // console.log("nextInstallmentDate", nextInstallmentDate);
+            // console.log("investmentPaymentDetails.next_installment_date", investmentPaymentDetails.next_installment_date);
+
 
             investmentPaymentDetails.next_installment_date = nextInstallmentDate;
 
@@ -211,8 +259,6 @@ export class InvestmentService {
                 'payments.investment_payment_details.payments'
             ],
         });
-
-        // console.log("user", user);
 
         const userPayment = user.payments.find(payment => payment.realty_id === realty.id);
 
@@ -274,6 +320,10 @@ export class InvestmentService {
             const nextInstallmentDate = new Date(investmentPaymentDetails.next_installment_date); 
 
             nextInstallmentDate.setDate(nextInstallmentDate.getDate() + 30);
+
+            console.log("nextInstallmentDate", nextInstallmentDate);
+            console.log("investmentPaymentDetails.next_installment_date", investmentPaymentDetails.next_installment_date);
+
 
             investmentPaymentDetails.next_installment_date = nextInstallmentDate;
 

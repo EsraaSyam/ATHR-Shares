@@ -8,6 +8,8 @@ import { MailerService } from 'src/mailer/mailer.service';
 import { TokenEntity } from './token.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FirebaseModule } from 'src/firebase/firebase.module';
+import { AdminEntity } from './entities/admin.entity';
+import { DeviceEntity } from 'src/users/entities/device.entity';
 
 @Module({
   imports:[
@@ -15,7 +17,7 @@ import { FirebaseModule } from 'src/firebase/firebase.module';
       secret: 'sira',
     }),
     forwardRef(() => UsersModule),
-    TypeOrmModule.forFeature([TokenEntity]),
+    TypeOrmModule.forFeature([TokenEntity, AdminEntity, DeviceEntity]),
     FirebaseModule,
   ],
   controllers: [AuthController],

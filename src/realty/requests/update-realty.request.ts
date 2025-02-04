@@ -1,6 +1,6 @@
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { CreateRealtyDetailsRequest } from './create-realty_details.request';
-import { CreateInvestmentDetails } from './create-investment-details.request';
+import { IsArray, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { UpdateRealtyDetailsRequest } from './update-realty-details.request';
+import { UpdateInvestmentDetails } from './update-investment-details';
 
 export class UpdateRealtyRequest {
   @IsOptional()
@@ -15,28 +15,28 @@ export class UpdateRealtyRequest {
   owner_name: string;
 
   @IsOptional()
-  @IsNumber()
   net_quarter?: number;
 
   @IsOptional()
-  @IsNumber()
   net_return?: number;
 
   @IsOptional()
-  @IsNumber()
+  sale_date?: string;
+
+  @IsOptional()
   down_payment?: number;
 
   @IsOptional()
-  is_avaliable: boolean = true;
+  is_available: boolean = true;
 
   @IsOptional()
   is_active: boolean = true;
 
   @IsOptional()
-  details: CreateRealtyDetailsRequest;
+  details: UpdateRealtyDetailsRequest;
 
   @IsOptional()
-  investment_details: CreateInvestmentDetails;
+  investment_details: UpdateInvestmentDetails;
 
   @IsArray()
   @ValidateNested({ each: true })

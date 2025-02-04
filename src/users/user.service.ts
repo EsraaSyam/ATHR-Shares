@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { UserEntity } from './user.entity';
+import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 import { CreateUserRequest } from './requests/create-user.requests';
@@ -7,7 +7,7 @@ import * as bycrpt from 'bcrypt';
 import { UpdateUserRequest } from './requests/update-user.request';
 import { NotFoundException } from 'src/exceptions/not-found.exception';
 import { AuthService } from 'src/auth/auth.service';
-import { Role } from './user.enum';
+import { Role } from './enums/user.enum';
 import { UserProfileResponse } from './responses/user-profile.response';
 import { UpdateProfileRequest } from './requests/update-profile.request';
 import { UserAlreadyExist } from 'src/exceptions/user-already-exist.exception';
@@ -94,7 +94,9 @@ export class UsersService {
     }
 
     async findById(id: number) {
-        return this.usersRepository.findOne({ where: { id: id.toString() }, relations: ['payments'] });
+        return this.usersRepository.findOne({ where: { id: id.toString() }, relations: ['payments', 
+                'payments.investment_payment_details', 
+                'payments.investment_payment_details.payments'] });
     }
 
     async findByIdWithout(id: number) {

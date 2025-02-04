@@ -5,15 +5,18 @@ import { MailerService } from 'src/mailer/mailer.service';
 import * as bycrpt from 'bcrypt';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { UserEntity } from 'src/users/user.entity';
+import { UserEntity } from 'src/users/entities/user.entity';
 import { RegisterRequest } from './requests/register.request';
 import { User } from './responses/user.response';
 import { UserAlreadyExist } from 'src/exceptions/user-already-exist.exception';
-import { Role } from 'src/users/user.enum';
+import { Role } from 'src/users/enums/user.enum';
 import * as admin from 'firebase-admin';
 import { TokenEntity } from './token.entity';
-import { Repository } from 'typeorm';
+import { Admin, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AdminEntity } from './entities/admin.entity';
+import { DeviceEntity } from 'src/users/entities/device.entity';
+import { DeviceType } from 'src/users/enums/device.enum';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +27,10 @@ export class AuthService {
         @Inject('FIREBASE_ADMIN') private firebaseAdmin: admin.app.App,
         @InjectRepository(TokenEntity)
         private tokenRepository: Repository<TokenEntity>,
+        @InjectRepository(AdminEntity)
+        private adminRepository: Repository<AdminEntity>,
+        @InjectRepository(DeviceEntity)
+        private deviceRepository: Repository<DeviceEntity>,
     ) { }
 
     async validateUser(phone_number: string, password: string) {
@@ -40,12 +47,47 @@ export class AuthService {
         return null;
     }
 
+    async findAdminByEmail(email: string) {
+        return this.adminRepository.findOne({ where: { email: email } });
+    }
+
+    async validateAdmin(email: string, password: string) {
+        const admin = await this.findAdminByEmail(email);
+
+        console.log(admin);
+
+        if (!admin) return null;
+
+        const isPasswordValid = await bycrpt.compare(password, admin.password);
+
+        if (admin && isPasswordValid) {
+            return admin;
+        }
+
+        return null;
+    }
+
+    async findDevice(device_token: string, device_type: DeviceType) {
+        return this.deviceRepository.findOne({ where: { device_token, device_type } });
+    }
+
     async login(user: any) {
         const payload = { email: user.email, sub: user.id, role: user.role };
 
         const accessToken = this.jwtService.sign(payload);
 
         const token = new TokenEntity();
+
+        const device = await this.findDevice(user.device_token, user.device_type);
+
+        if (!device) {
+            const newDevice = new DeviceEntity();
+            newDevice.device_token = user.device_token;
+            newDevice.device_type = user.device_type;
+            newDevice.user = user;
+
+            await this.deviceRepository.save(newDevice);
+        }
 
         token.accessToken = accessToken;
 
@@ -230,17 +272,17 @@ export class AuthService {
 
     async sendNotification(fcmToken: string, title: string, body: string, data?: any) {
         const message = {
-          notification: { title, body },
-          token: fcmToken,
-          data: data || {}, 
+            notification: { title, body },
+            token: fcmToken,
+            data: data || {},
         };
-    
-        try {
-          const response = await this.firebaseAdmin.messaging().send(message);
 
-          return response;
+        try {
+            const response = await this.firebaseAdmin.messaging().send(message);
+
+            return response;
         } catch (error) {
             throw new UnauthorizedException('حدث خطأ أثناء إرسال الإشعار');
         }
-      }
+    }
 }

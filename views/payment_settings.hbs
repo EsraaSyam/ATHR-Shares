@@ -1,0 +1,199 @@
+{{#> layout}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="page-body">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Payments Methods </h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table" id="userTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Method Name</th>
+                            <th scope="col"> value</th>
+                            <th scope="col">Is Active </th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Editing Payment Method -->
+<div id="editPaymentModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Payment Method</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPaymentForm">
+                    <input type="hidden" id="paymentId">
+                    <div class="form-group">
+                        <label for="methodName">Method Name</label>
+                        <input type="text" id="methodName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="value">Value</label>
+                        <input type="text" id="value" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="isActive">Is Active</label>
+                        <input type="checkbox" id="isActive">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function closeModal() {
+        const modal = new bootstrap.Modal(document.getElementById('editPaymentModal'));
+        modal.hide(); 
+    }
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+        const userTableBody = document.getElementById('userTableBody');
+        const editPaymentModal = new bootstrap.Modal(document.getElementById('editPaymentModal'));
+
+        async function fetchPayments() {
+            try {
+                const response = await fetch(`${BASE_URL}/admin/payment_methods`, {
+                    method: 'GET',
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    showToast(errorData.message || 'Failed to fetch payment data.', 'failure');
+                    return;
+                }
+
+                const data = await response.json();
+                const payment_data = data.data;
+
+                userTableBody.innerHTML = '';
+                let cnt = 1;
+
+                const paymentPromises = payment_data.map(async (payment) => {
+                    try {
+                        const row = `
+      <tr>
+        <td>${cnt++}</td>
+        <td>${payment.method_name}</td>
+        <td>${payment.value}</td>
+        <td>${payment.is_active}</td>
+        <td>
+         <button class="btn btn-primary btn-sm btn-edit px-4" onclick="openEditModal(${payment.id})">Edit</button>
+        </td>
+      </tr>`;
+                        return row;
+                    } catch (error) {
+                        const errorMessage = error.message;
+                        showToast(errorMessage, 'failure');
+                        return '';
+                    }
+                });
+
+                const userRows = await Promise.all(paymentPromises);
+                userTableBody.innerHTML = userRows.join('');
+            } catch (error) {
+                const errorMessage = error.message;
+                showToast(errorMessage, 'failure');
+            }
+        }
+
+        window.openEditModal = async function (id) {
+            try {
+                const response = await fetch(`${BASE_URL}/admin/payment_methods/${id}`);
+
+                if (!response.ok) throw new Error('Failed to fetch payment method');
+
+                let payment = await response.json();
+                payment = payment.data;
+
+                document.getElementById('paymentId').value = id;
+                document.getElementById('methodName').value = payment.method_name;
+                document.getElementById('value').value = payment.value;
+                document.getElementById('isActive').checked = payment.is_active;
+
+                editPaymentModal.show();
+            } catch (error) {
+                showToast(error.message, 'failure');
+            }
+        };
+
+        document.getElementById('editPaymentForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const paymentId = document.getElementById('paymentId').value;
+            const updatedPayment = {
+                method_name: document.getElementById('methodName').value,
+                value: document.getElementById('value').value,
+                is_active: document.getElementById('isActive').checked = document.getElementById('isActive').checked ? true : false,
+            };
+
+            try {
+                const response = await fetch(`${BASE_URL}/admin/payment_methods/${paymentId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedPayment)
+                });
+
+                if (!response.ok) throw new Error('Failed to update payment method');
+
+                showToast('Payment method updated successfully', 'success');
+                editPaymentModal.hide();
+                fetchPayments();
+            } catch (error) {
+                showToast(error.message, 'failure');
+            }
+        }); 
+
+        fetchPayments();
+    });
+</script>
+
+<style>
+    .pagination-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin: 0 5px;
+        border: 1px solid #ddd;
+        background-color: #fff;
+        color: #006A4E;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .pagination-btn:hover {
+        background-color: #006A4E;
+        color: #fff;
+        border-color: #006A4E;
+        transform: scale(1.1);
+    }
+
+    .active-page {
+        background-color: #006A4E !important;
+        color: #fff !important;
+        border-color: #006A4E !important;
+    }
+
+    .pagination-btn i {
+        font-size: 14px;
+    }
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{{/layout}}

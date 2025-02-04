@@ -32,4 +32,8 @@ export class CreateRealtyDetailsRequest {
   @IsNotEmpty()
   @IsString()
   latitude: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  net_share_count: number;
 }

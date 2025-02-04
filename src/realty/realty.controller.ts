@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, NotFoundException, Param, Post, Put, Req, Res, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { RealtyService } from './realty.service';
 import { CreateRealtyRequest } from './requests/create-realty.request';
 import { Response } from 'express';
@@ -8,8 +8,9 @@ import { extname } from 'path';
 import { fileUploadOptions } from 'src/common/utils/file-upload.util';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/users/user.enum';
+import { Role } from 'src/users/enums/user.enum';
 import { RealtyResponse } from './responses/realty.response';
+import { UpdateRealtyRequest } from './requests/update-realty.request';
 
 @Controller('realty')
 @UseGuards(RolesGuard)
@@ -18,17 +19,30 @@ export class RealtyController {
 
     @Get()
     async getAllRealtys() {
-        return this.realtyService.findAll();
+        return await this.realtyService.findAll();
     }
 
     @Get('get-realty-by-id/:id')
-    async getRealtyById(@Param('id') id: number) {
-        return this.realtyService.findRealtyById(id);
+    async getRealtyById(@Param('id') id: number, @Res() res: Response) {
+        const realty = await this.realtyService.findRealtyById(id); 
+
+        return res.status(200).json({
+            message: 'تم بنجاح',
+            data: realty,
+        });
     }
 
+    @Get('get-realty-by-id-dashboard/:id')
+    async getSoldRealtyById(@Param('id') id: number, @Res() res: Response) {
+        const realty = await this.realtyService.findRealtyForDahboardById(id);
+
+        return res.status(200).json({
+            message: 'تم بنجاح',
+            data: realty,
+        });
+    }
 
     @Post('/create')
-    @Roles(Role.ADMIN)
     @UseInterceptors(
         FilesInterceptor('images', 10, {
             storage: diskStorage({
@@ -42,11 +56,15 @@ export class RealtyController {
     )
     async createRealty(
         @Body() createRealtyRequest: CreateRealtyRequest,
-        @Req() req,  
+        @Req() req,
         @UploadedFiles() files: Express.Multer.File[],
         @Res() res,
     ) {
         try {
+
+            if (!files) {
+                return res.status(400).json({ message: 'Please upload at least one image' });
+            }
 
             const backgroundImageFile = files[0];
             const realtyImages = files.slice(1);
@@ -68,7 +86,7 @@ export class RealtyController {
             const data = new RealtyResponse(realty);
 
             return res.status(201).json({
-                message: 'Realty created successfully',
+                message: 'تم انشاء العقار بنجاح',
                 data: {
                     ...data,
                     images: realtyImageUrls,
@@ -76,8 +94,7 @@ export class RealtyController {
                 },
             });
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ message: 'Something went wrong', error: error.message });
+            return res.status(500).json({ message: 'حدث خطأ', error: error.message });
         }
     }
 
@@ -87,9 +104,8 @@ export class RealtyController {
         const realtys = await this.realtyService.getAvaliableRealty();
         return res.status(200).json(
             {
-                data: {
-                    realtys,
-                }
+                message: 'تم بنجاح',
+                data: realtys,
             }
         );
     }
@@ -99,6 +115,7 @@ export class RealtyController {
         const realty = await this.realtyService.getSoldRealty();
         return res.status(200).json(
             {
+                message: 'تم بنجاح',
                 data: realty,
             }
         );
@@ -107,23 +124,67 @@ export class RealtyController {
     @Get('/home/avaliable_realty')
     async getHomeAvaliableRealty(@Res() res: Response) {
         const realtys = await this.realtyService.getHomeAvaliableRealty();
+
+        if (!realtys) {
+            throw new NotFoundException('لا يوجد عقارات متوفرة');
+        }
+
         return res.status(200).json(
             {
-                data: {
-                    realtys,
-                }
+                message: 'تم بنجاح',
+                data: realtys,
             }
         );
     }
 
     @Delete('/delete/:id')
-    @Roles(Role.ADMIN)
     async deleteRealty(@Param('id') id: number, @Res() res: Response) {
-        await this.realtyService.deleteRealty(id);
+        await this.realtyService.deleteRealty(Number(id));
+
         return res.status(200).json(
             {
-                message: 'Realty deleted successfully',
+                message: 'تم حذف العقار بنجاح',
             }
         );
     }
+
+    @Put('/update/:id')
+    @UseInterceptors(
+        FilesInterceptor('images', 10, {
+            storage: diskStorage({
+                destination: './uploads/realty_images',
+                filename: (req, file, callback) => {
+                    const uniqueName = `${Date.now()}${extname(file.originalname)}`;
+                    callback(null, uniqueName);
+                },
+            }),
+        })
+    )
+    async updateRealty(
+        @Param('id') id: number,
+        @Body() updateRealtyRequest: UpdateRealtyRequest,
+        @Req() req,
+        @UploadedFiles() files: Express.Multer.File[],
+        @Res() res: Response,
+    ) {
+        try {
+            console.log("updateRealtyRequest", updateRealtyRequest);
+
+            const realty = await this.realtyService.updateRealty(id, updateRealtyRequest, files);
+
+            const realtyImages = files.map(file => `${process.env.SERVER_URL}/uploads/realty_images/${file.filename}`);
+
+            return res.status(200).json({
+                message: 'تم تحديث العقار بنجاح',
+                data: {
+                    ...realty,
+                    images: realtyImages,
+                },
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: 'حدث خطأ', error: error.message });
+        }
+    }
+
 }

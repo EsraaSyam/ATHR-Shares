@@ -6,7 +6,7 @@ export class InvestmentDetailsEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column('double precision')
+    @Column('double precision', {nullable: true})
     unit_price: number;
 
     @Column('double precision')
@@ -23,5 +23,5 @@ export class InvestmentDetailsEntity {
     };
 
     @Column('double precision', {nullable: true})
-    service_charge: number = 0;
+    service_charge: number;
 }

@@ -1,11 +1,14 @@
-import { IsArray, IsEmail, IsNotEmpty, IsOptional, MaxLength, MinLength, ValidateNested } from "class-validator";
-import { Role } from "src/users/user.enum";
+import { IsArray, IsEmail, IsNotEmpty, IsOptional, Length, Matches, MaxLength, MinLength, ValidateNested } from "class-validator";
+import { Role } from "src/users/enums/user.enum";
 
 export class RegisterRequest {
     @IsNotEmpty({ message: 'الاسم الكامل مطلوب' })
     full_name: string;
 
     @IsNotEmpty({ message: 'رقم الهاتف مطلوب' })
+    @Matches(/^\+?[1-9]\d{6,14}$/, { 
+        message: '+رقم الهاتف غير صالح. يجب أن يكون بصيغة دولية صحيحة، مثل: 201012345678' 
+      })
     phone_number: string;
 
     @IsNotEmpty({ message: 'كلمة المرور مطلوبة' })

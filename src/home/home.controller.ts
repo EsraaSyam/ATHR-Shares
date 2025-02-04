@@ -11,7 +11,7 @@ import { extname } from 'path';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { User } from 'src/auth/responses/user.response';
-import { Role } from 'src/users/user.enum';
+import { Role } from 'src/users/enums/user.enum';
 
 @Controller('home')
 export class HomeController {

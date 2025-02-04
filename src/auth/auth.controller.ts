@@ -11,12 +11,15 @@ import { ResetPasswordRequest } from './requests/resetPassword.request';
 import { Response } from 'express';
 import { AnyFilesInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/users/user.enum';
+import { Role } from 'src/users/enums/user.enum';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { UsersService } from 'src/users/user.service';
 import { ReconnectStrategyError } from 'redis';
+import { AdminService } from 'src/admin/admin.service';
+import { LoginAdminRequest } from 'src/admin/requests/login-admin.request';
+import { loginAdminResponse } from 'src/admin/response/login-admin.response';
 
 @Controller('auth')
 @UseGuards(RolesGuard)
@@ -25,7 +28,50 @@ export class AuthController {
     constructor(
         private readonly authService: AuthService,
         private readonly userService: UsersService,
+        // private readonly adminService: AdminService,
     ) { }
+
+    @Post('/admin/login')
+    async loginAdmin(@Body() loginAdminRequest: LoginAdminRequest, @Req() req, @Res() res: Response) {
+        const admin = await this.authService.validateAdmin(loginAdminRequest.email, loginAdminRequest.password);
+
+        if (!admin) {
+            return res.status(401).json(
+                {
+                    message: 'يوجد خظأ في البريد الالكتروني او الباسورد',
+                }
+            );
+        }
+
+        if (!req.session) {
+            return res.status(500).json({ message: 'حدث خطأ في إنشاء الجلسة. يرجى المحاولة لاحقًا' });
+        }
+
+        const { email } = loginAdminRequest;
+
+        req.session.email = email;
+
+        return res.status(200).json(
+            {
+                message: 'تم تسجيل الدخول بنجاح',
+                data: new loginAdminResponse(admin),
+                session: req.session,
+            }
+        );
+    }
+
+    @Post('/admin/logout')
+    async logoutAdmin(@Req() req, @Res() res: Response) {
+        req.session.destroy(err => {
+            if (err) {
+                console.error('Error destroying session:', err);
+                return res.status(500).json({ message: 'Failed to log out' });
+            }
+
+            res.clearCookie('connect.sid');
+            return res.status(200).json({ message: "Successfully logged"});
+        });
+    }
 
     @Post('login')
     @UseInterceptors(AnyFilesInterceptor())
@@ -214,7 +260,7 @@ export class AuthController {
 
     @Post('update-fcm-token')
     @UseInterceptors(AnyFilesInterceptor())
-    async updateFcmToken(@Body() body: { fcmToken: string }, @Req() req , @Res() res: Response) {
+    async updateFcmToken(@Body() body: { fcmToken: string }, @Req() req, @Res() res: Response) {
         const token = req.headers['authorization'];
 
         if (!token) {
@@ -229,14 +275,14 @@ export class AuthController {
     }
 
     @Post('send')
-    async sendNotification(@Body() body: { title: string; message: string }, @Req() req , @Res() res: Response) {
+    async sendNotification(@Body() body: { title: string; message: string }, @Req() req, @Res() res: Response) {
         const token = req.headers['authorization'];
 
         if (!token) {
             throw new UnauthorizedException('توكن غير موجود');
         }
 
-        if (!body.title ||!body.message) {
+        if (!body.title || !body.message) {
             throw new BadRequestException('الرجاء ادخال العنوان والرسالة');
         }
 
