@@ -36,6 +36,7 @@ import path from 'path';
 import { PaymentMethodsEntity } from './admin/entities/payment-methods.entity';
 import { SocialMediaEntity } from './admin/entities/social-media.entitiy';
 import { DeviceEntity } from './users/entities/device.entity';
+import { NotificationsEntity } from './firebase/entites/notifications.entity';
 
 @Module({
   imports: [
@@ -73,7 +74,7 @@ import { DeviceEntity } from './users/entities/device.entity';
         database: configService.get<string>('DB_NAME'),
         entities: [UserEntity, BannerEntity, RealtyEntity, RealtyDetailsEntity, InvestmentDetailsEntity, RealtyImagesEntity, RealtyBackgroundEntity,
           PriceDetailsEntity, PaymentEntity, TokenEntity,InvestmentPaymentDetailsEntity, PaymentForInvestmentEntity, AdminEntity, PaymentMethodsEntity,
-          SocialMediaEntity, DeviceEntity,
+          SocialMediaEntity, DeviceEntity, NotificationsEntity, 
         ],
         synchronize: true,
         ssl: {

@@ -63,7 +63,7 @@
     const saveButton = document.getElementById('saveUserButton');
 
     try {
-      const response = await fetch(`http://localhost:3000/api/v1/admin/users/${userId}`);
+      const response = await fetch(`${BASE_URL}/admin/users/${userId}`);
       if (!response.ok) throw new Error('Failed to fetch user data.');
       const userData = await response.json();
       const user = userData.data;
@@ -96,7 +96,7 @@
       };
 
       try {
-        const response = await fetch(`http://localhost:3000/api/v1/admin/users/${userId}`, {
+        const response = await fetch(`${BASE_URL}/admin/users/${userId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updatedUser),

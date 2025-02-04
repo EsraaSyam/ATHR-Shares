@@ -40,7 +40,7 @@
     async function fetchUsers(page = 1) {
       try {
         currentPage = parseInt(page);
-        const response = await fetch(`http://localhost:3000/api/v1/admin/payments?page=${page}`);
+        const response = await fetch(`${BASE_URL}/admin/payments?page=${page}`);
         if (!response.ok) {
           const errorData = await response.json();
           showToast(errorData.message || 'Failed to fetch payment data.', 'failure');
@@ -57,7 +57,7 @@
 
         const paymentPromises = payment_data.map(async (payment) => {
           try {
-            const response2 = await fetch(`http://localhost:3000/api/v1/admin/users/${payment.user_id}`);
+            const response2 = await fetch(`${BASE_URL}/admin/users/${payment.user_id}`);
 
             if (!response2.ok) throw new Error('Failed to fetch user data');
 
@@ -150,7 +150,7 @@
       if (!isConfirmed) return;
 
       try {
-        const response = await fetch(`http://localhost:3000/api/v1/admin/payment/${paymentId}`, {
+        const response = await fetch(`${BASE_URL}/admin/payment/${paymentId}`, {
           method: 'DELETE',
         });
 

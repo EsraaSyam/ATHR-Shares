@@ -67,7 +67,7 @@
 
         async function fetchPayments() {
             try {
-                const response = await fetch(`http://localhost:3000/api/v1/admin/payment_methods`, {
+                const response = await fetch(`${BASE_URL}/admin/payment_methods`, {
                     method: 'GET',
                 });
 
@@ -113,7 +113,7 @@
 
         window.openEditModal = async function (id) {
             try {
-                const response = await fetch(`http://localhost:3000/api/v1/admin/payment_methods/${id}`);
+                const response = await fetch(`${BASE_URL}/admin/payment_methods/${id}`);
 
                 if (!response.ok) throw new Error('Failed to fetch payment method');
 
@@ -142,7 +142,7 @@
             };
 
             try {
-                const response = await fetch(`http://localhost:3000/api/v1/admin/payment_methods/${paymentId}`, {
+                const response = await fetch(`${BASE_URL}/admin/payment_methods/${paymentId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(updatedPayment)

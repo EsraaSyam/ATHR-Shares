@@ -161,7 +161,7 @@
       if (profilePhoto) formData.append('profile_photo', profilePhoto);
 
       try {
-        const response = await fetch('http://localhost:3000/api/v1/auth/register', {
+        const response = await fetch(`${BASE_URL}/auth/register`, {
           method: 'POST',
           body: formData,
         });
@@ -187,12 +187,13 @@
 
     async function fetchUsers(page, search = '') {
       try {
-        const response = await fetch(`http://localhost:3000/api/v1/admin/users?page=${page}&limit=${limit}&search=${search}`, {
+        const response = await fetch(`${BASE_URL}/admin/users?page=${page}&limit=${limit}&search=${search}`, {
           method: 'GET',
         });
 
         if (!response.ok) {
           const errorData = await response.json();
+          console.log('errorData', errorData);
           showToast(errorData.message || 'Failed to fetch user data.', 'failure');
           return;
         }
@@ -218,7 +219,8 @@
               <td>${user.email}</td>
               <td>${user.phone_number || 'N/A'}</td>
               <td>${user.is_verified === true ? 'Yes' : 'No'}</td>
-              <td><img src="/assets/images/logo/logo.png" alt="Profile Photo" style="width: 100px;"></td>
+              <td><img src="${user.profile_photo}" alt="Profile Photo" style="width: 100px;"></td>
+              {{!-- <td><img src="/assets/images/logo/logo.png" alt="Profile Photo" style="width: 100px;"></td> --}}
              <td>
     <button class="btn px-4" style="background-color: #006A4E; color: white;" data-id="${user.id}" onclick="editUser(this)">
         Edit
@@ -261,7 +263,7 @@
         }
 
         try {
-          const response = await fetch(`http://localhost:3000/api/v1/admin/notifications/send-specific-user`, {
+          const response = await fetch(`${BASE_URL}/admin/notifications/send-specific-user`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -350,7 +352,7 @@
       if (!isConfirmed) return;
 
       try {
-        const response = await fetch(`http://localhost:3000/api/v1/admin/users/${userId}`, {
+        const response = await fetch(`${BASE_URL}/admin/users/${userId}`, {
           method: 'DELETE',
         });
 

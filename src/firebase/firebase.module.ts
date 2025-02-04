@@ -3,6 +3,8 @@ import { FirebaseService } from './firebase.service';
 import { FirebaseController } from './firebase.controller';
 import * as admin from 'firebase-admin';
 import * as serviceAccount from 'src/config/firebase/google-services.json';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 const cleanedServiceAccount = {
   type: serviceAccount.type,
@@ -18,6 +20,9 @@ const cleanedServiceAccount = {
 };
 
 @Module({
+  imports: [
+    TypeOrmModule.forFeature([UserEntity]),
+  ],
   providers: [
     {
       provide: 'FIREBASE_ADMIN',

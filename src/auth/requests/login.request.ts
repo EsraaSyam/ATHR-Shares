@@ -8,7 +8,7 @@ export class LoginRequest {
     password: string;
 
     @IsNotEmpty({message: "الجهاز مطلوب"})
-    device_token: string;
+    device_token: string; 
 
     @IsNotEmpty({message: "نوع الجهاز مطلوب"})
     device_type: string;

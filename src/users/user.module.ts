@@ -6,10 +6,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { AuthService } from 'src/auth/auth.service';
 import { DeviceEntity } from './entities/device.entity';
+import { NotificationsEntity } from 'src/firebase/entites/notifications.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserEntity, DeviceEntity]),
+    TypeOrmModule.forFeature([UserEntity, DeviceEntity, NotificationsEntity]),
     forwardRef(() => AuthModule),
   ],
   controllers: [UsersController],

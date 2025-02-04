@@ -3,6 +3,7 @@ import { Role } from '../enums/user.enum';
 import { PaymentEntity } from 'src/payment/entities/payment.entity';
 import { TokenEntity } from 'src/auth/token.entity';
 import { DeviceEntity } from './device.entity';
+import { NotificationsEntity } from 'src/firebase/entites/notifications.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -59,4 +60,7 @@ export class UserEntity {
 
   @OneToMany(() => DeviceEntity, device => device.user)
   devices: DeviceEntity[];
+
+  @OneToMany(() => NotificationsEntity, notification => notification.user)
+  notifications: NotificationsEntity[];
 }

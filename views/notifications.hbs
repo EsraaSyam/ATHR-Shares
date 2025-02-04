@@ -45,7 +45,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:3000/api/v1/admin/notifications/send-all-users', {
+                const response = await fetch(`${BASE_URL}/admin/notifications/send-all-users`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

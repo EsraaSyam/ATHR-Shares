@@ -156,7 +156,7 @@
                 throw new Error('Missing realty ID');
             }
 
-            const response = await fetch(`http://localhost:3000/api/v1/realty/get-realty-by-id-dashboard/${id}`);
+            const response = await fetch(`${BASE_URL}/realty/get-realty-by-id-dashboard/${id}`);
 
             console.log(response);
             if (!response.ok) {
@@ -271,7 +271,7 @@
                 }
 
                 try {
-                    const response = await fetch(`http://localhost:3000/api/v1/realty/update/${id}`, {
+                    const response = await fetch(`${BASE_URL}/realty/update/${id}`, {
                         method: 'PUT',
                         body: formData,
                     });

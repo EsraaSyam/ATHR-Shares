@@ -118,7 +118,7 @@
             };
 
             try {
-                const response = await fetch('http://localhost:3000/api/v1/admin/social-media', {
+                const response = await fetch(`${BASE_URL}/admin/social-media`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(socialData)
@@ -141,7 +141,7 @@
 
         async function fetchSocial() {
             try {
-                const response = await fetch(`http://localhost:3000/api/v1/admin/social-media`, {
+                const response = await fetch(`${BASE_URL}/admin/social-media`, {
                     method: 'GET',
                 });
 
@@ -188,7 +188,7 @@
         window.openEditModal = async function (id) {
             try {
                 console.log("id: " + id);
-                const response = await fetch(`http://localhost:3000/api/v1/admin/social-media/${id}`,
+                const response = await fetch(`${BASE_URL}/admin/social-media/${id}`,
                     {
                         method: 'GET',
                     });
@@ -224,7 +224,7 @@
             };
 
             try {
-                const response = await fetch(`http://localhost:3000/api/v1/admin/social-media/${socialId}`, {
+                const response = await fetch(`${BASE_URL}/admin/social-media/${socialId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(updatedPayment)

@@ -118,11 +118,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    const BASE_URLL = 'http://192.168.1.87:3000/api/v1';
+
     const apiUrls = {
-        chart1: "http://localhost:3000/api/v1/admin/charts/users",
-        chart2: "http://localhost:3000/api/v1/admin/charts/payments",
-        chart3: "http://localhost:3000/api/v1/admin/charts/installment",
-        chart4: "http://localhost:3000/api/v1/admin/charts/realty",
+        chart1: `${BASE_URLL}/admin/charts/users`,
+        chart2: `${BASE_URLL}/admin/charts/payments`,
+        chart3: `${BASE_URLL}/admin/charts/installment`,
+        chart4: `${BASE_URLL}/admin/charts/realty`,
     };
 
     const chartElements = {
@@ -144,6 +146,8 @@
         const paymentsData = await fetchChartData(apiUrls.chart2);
         const installmentData = await fetchChartData(apiUrls.chart3);
         const realtyData = await fetchChartData(apiUrls.chart4);
+
+        console.log(usersData, paymentsData, installmentData, realtyData);
 
         if (usersData) {
             const totalUsers = Object.values(usersData).reduce((acc, curr) => acc + curr, 0);
@@ -177,12 +181,25 @@
                 showToast(errorData.message || "Failed to fetch data.", "failure");
             }
             const result = await response.json();
-            return result.data;
+            return formatChartData(result.data);
         } catch (error) {
             showToast(error.message || "Failed to fetch data.", "failure");
         }
     }
 
+
+    function formatChartData(data) {
+        const formattedData = {};
+        Object.entries(data).forEach(([key, value]) => {
+            if (key.startsWith("month_")) {
+                const monthNumber = key.replace("month_", ""); 
+                formattedData[`${monthNumber} month`] = value;
+            } else {
+                formattedData[key] = value;
+            }
+        });
+        return formattedData;
+    }
     async function createChart(chartId, chartType) {
         const data = await fetchChartData(apiUrls[chartId]);
 
